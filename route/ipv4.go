@@ -184,7 +184,7 @@ func GetRoutes4() ([]Route4, error) {
 }
 
 // getDefaultGateway4 returns the gateway route with the lowest Metric.
-// This function is only for globaly routable addresses. For LAN, use GetIPv4Route().
+// This function is only for globally routable addresses. For LAN, use GetIPv4Route().
 func getDefaultGateway4() (Route4, error) {
 
 	routes, err := GetRoutes4()
