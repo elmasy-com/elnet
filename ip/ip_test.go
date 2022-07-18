@@ -53,3 +53,33 @@ func TestIsLAN(t *testing.T) {
 		t.Errorf("%s is not in LAN\n", ip)
 	}
 }
+
+func TestGetLIst(t *testing.T) {
+
+	_, ipnet, err := net.ParseCIDR("192.168.1.1/16")
+	if err != nil {
+		t.Errorf("Failed to parse cidr: %s\n", err)
+	}
+
+	first, last, u := GetList(*ipnet)
+
+	if !ipnet.Contains(first) {
+		t.Errorf("First address is not in %s: %s\n", ipnet.String(), first)
+	}
+	if !ipnet.Contains(last) {
+		t.Errorf("Last address is not in %s: %s\n", ipnet.String(), last)
+	}
+
+	counter := 0
+
+	for ip := range u {
+
+		counter++
+
+		if !ipnet.Contains(ip) {
+			t.Errorf("%s is not in %s\n", ip, ipnet)
+		}
+	}
+
+	t.Logf("First: %s | Last: %s | Usable count: %d\n", first, last, counter)
+}
