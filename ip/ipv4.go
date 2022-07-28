@@ -1,9 +1,10 @@
 package ip
 
 import (
+	"bytes"
+	"fmt"
 	"math/rand"
 	"net"
-	"strings"
 )
 
 // ReservedIPv4 is a collection of reserved IPv4 addresses.
@@ -28,6 +29,13 @@ var ReservedIPv4 = []net.IPNet{
 	{IP: net.IPv4(255, 255, 255, 255), Mask: net.IPv4Mask(255, 255, 255, 255)}, // 255.255.255.255/32, Broadcast
 }
 
+var (
+	// /32 network mask
+	Mask32 = net.IPMask{0xff, 0xff, 0xff, 0xff}
+	// /31 network mask
+	Mask31 = net.IPMask{0xff, 0xff, 0xff, 0xfe}
+)
+
 // IsReserved4 checks if the given IPv4 address is reserved.
 func IsReserved4(ip net.IP) bool {
 	for i := range ReservedIPv4 {
@@ -40,18 +48,6 @@ func IsReserved4(ip net.IP) bool {
 
 // IsValid4 checks whether ip is valid IPv4 address.
 func IsValid4[T IPTypes](ip T) bool {
-
-	// Check the string. IPv4 address should contains '.'.
-	if v, ok := any(ip).(string); ok {
-		if !strings.Contains(v, ".") {
-			return false
-		}
-	}
-	if v, ok := any(ip).(*string); ok {
-		if !strings.Contains(*v, ".") {
-			return false
-		}
-	}
 
 	i := convertToIP(ip)
 	if i == nil {
@@ -82,4 +78,67 @@ func GetPublic4() net.IP {
 			return ip
 		}
 	}
+}
+
+// GetList4 creates a list of IPv4 address on the given IPNet.
+// Returns the first (identification address), the last (broadcast address) and a channel of usable IP addresses.
+// If the mask is /32 the last and the usable channel is nil.
+// If the mask is /31 the usable channel is nil.
+func GetList4(n net.IPNet) (net.IP, net.IP, <-chan net.IP, error) {
+
+	switch {
+	case !IsValid4(n):
+		return nil, nil, nil, fmt.Errorf("invalid IPv4 address: %s", n.IP)
+	case len(n.Mask) != net.IPv4len:
+		return nil, nil, nil, fmt.Errorf("invalid IPv4 mask: %s", n.Mask)
+	}
+
+	first := make(net.IP, net.IPv4len)
+
+	copy(first, n.IP.Mask(n.Mask))
+
+	// IPv4/32 has only one IP address
+	if bytes.Compare(n.Mask, Mask32) == 0 {
+		return first, nil, nil, nil
+	}
+
+	last := make(net.IP, net.IPv4len)
+	copy(last, first)
+
+	// Find the last address
+	ip := make(net.IP, net.IPv4len)
+	copy(ip, first)
+
+	for Increase(ip); n.Contains(ip); Increase(ip) {
+		copy(last, ip)
+	}
+
+	// IPv4/31 has two IP address: first and last
+	if bytes.Compare(n.Mask, Mask31) == 0 {
+		return first, last, nil, nil
+	}
+
+	/*
+		Use channel because of memory allocation: for example 10.0.0.0/8 allocate too much memory at once (not to mention IPv6).
+		With unbuffered channel, one can iterate over it with range.
+	*/
+
+	// Start again from the first address.
+	copy(ip, first)
+
+	// TODO: Buffered channel?
+	usable := make(chan net.IP)
+
+	go func() {
+		// Increase ip until the last address
+		for Increase(ip); !ip.Equal(last); Increase(ip) {
+			v := make(net.IP, len(ip))
+			copy(v, ip)
+
+			usable <- v
+		}
+		close(usable)
+	}()
+
+	return first, last, usable, nil
 }

@@ -1,9 +1,10 @@
 package ip
 
 import (
+	"bytes"
+	"fmt"
 	"math/rand"
 	"net"
-	"strings"
 )
 
 // ReservedIPv6 is a collection of reserved IPv6 addresses.
@@ -24,6 +25,13 @@ var ReservedIPv6 = []net.IPNet{
 	{IP: net.IP{255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, Mask: net.IPMask{255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},                             // ff00::/8, Multicast
 }
 
+var (
+	// /128 network mask
+	Mask128 = net.IPMask{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+	// /127 network mask
+	Mask127 = net.IPMask{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe}
+)
+
 // IsReserved6 checks if the given IPv6 address is reserved.
 func IsReserved6(ip net.IP) bool {
 	for i := range ReservedIPv6 {
@@ -37,24 +45,12 @@ func IsReserved6(ip net.IP) bool {
 // IsValid6 checks whether ip is valid IPv6 address.
 func IsValid6[T IPTypes](ip T) bool {
 
-	// Check the string. IPv6 address should contains ':'.
-	if v, ok := any(ip).(string); ok {
-		if !strings.Contains(v, ":") {
-			return false
-		}
-	}
-	if v, ok := any(ip).(*string); ok {
-		if !strings.Contains(*v, ":") {
-			return false
-		}
-	}
-
 	i := convertToIP(ip)
 	if i == nil {
 		return false
 	}
 
-	return i.To16() != nil
+	return i.To4() == nil
 }
 
 // GetRandom6 is return a random IPv6 address.
@@ -82,4 +78,67 @@ func GetPublic6() net.IP {
 			return ip
 		}
 	}
+}
+
+// GetList6 creates a list of IPv6 address on the given IPNet.
+// Returns the first (identification address), the last (broadcast address) and a channel of usable IP addresses.
+// If the mask is /128 the last and the usable channel is nil.
+// If the mask is /127 the usable channel is nil.
+func GetList6(n net.IPNet) (net.IP, net.IP, <-chan net.IP, error) {
+
+	switch {
+	case !IsValid6(n):
+		return nil, nil, nil, fmt.Errorf("invalid IPv6 address: %s", n.IP)
+	case len(n.Mask) != net.IPv6len:
+		return nil, nil, nil, fmt.Errorf("invalid IPv6 mask: %s", n.Mask)
+	}
+
+	first := make(net.IP, net.IPv6len)
+
+	copy(first, n.IP.Mask(n.Mask))
+
+	// IPv6-128 has only one IP address
+	if bytes.Compare(n.Mask, Mask128) == 0 {
+		return first, nil, nil, nil
+	}
+
+	last := make(net.IP, net.IPv6len)
+	copy(last, first)
+
+	// Find the last address
+	ip := make(net.IP, net.IPv6len)
+	copy(ip, first)
+
+	for Increase(ip); n.Contains(ip); Increase(ip) {
+		copy(last, ip)
+	}
+
+	// IPv6/127 has two IP address: first and last
+	if bytes.Compare(n.Mask, Mask127) == 0 {
+		return first, last, nil, nil
+	}
+
+	/*
+		Use channel because of memory allocation: for example 10.0.0.0/8 allocate too much memory at once (not to mention IPv6).
+		With unbuffered channel, one can iterate over it with range.
+	*/
+
+	// Start again from the first address.
+	copy(ip, first)
+
+	// TODO: Buffered channel?
+	usable := make(chan net.IP)
+
+	go func() {
+		// Increase ip until the last address
+		for Increase(ip); !ip.Equal(last); Increase(ip) {
+			v := make(net.IP, len(ip))
+			copy(v, ip)
+
+			usable <- v
+		}
+		close(usable)
+	}()
+
+	return first, last, usable, nil
 }

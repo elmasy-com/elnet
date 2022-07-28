@@ -54,14 +54,17 @@ func TestIsLAN(t *testing.T) {
 	}
 }
 
-func TestGetLIst(t *testing.T) {
+func TestGetList(t *testing.T) {
 
 	_, ipnet, err := net.ParseCIDR("192.168.1.1/16")
 	if err != nil {
 		t.Errorf("Failed to parse cidr: %s\n", err)
 	}
 
-	first, last, u := GetList(*ipnet)
+	first, last, u, err := GetList(*ipnet)
+	if err != nil {
+		t.Errorf("Failed to GetList: %s\n", err)
+	}
 
 	if !ipnet.Contains(first) {
 		t.Errorf("First address is not in %s: %s\n", ipnet.String(), first)
