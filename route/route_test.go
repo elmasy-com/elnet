@@ -30,7 +30,7 @@ func TestGetRoutes4(t *testing.T) {
 	}
 
 	for i := range routes {
-		t.Logf("%s\n", routes[i].String())
+		t.Logf("%s\n", routes[i])
 	}
 }
 

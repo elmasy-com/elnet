@@ -79,6 +79,17 @@ func parseIPv4(ip string) ([]byte, error) {
 	return []byte{byte(b1), byte(b2), byte(b3), byte(b4)}, nil
 }
 
+func selectInterface(s []net.Interface, name string) *net.Interface {
+
+	for i := range s {
+		if s[i].Name == name {
+			return &s[i]
+		}
+	}
+
+	return nil
+}
+
 // GetRoutes4 parses /proc/net/route and return a slice of the routes.
 func GetRoutes4() ([]Route4, error) {
 
@@ -90,6 +101,11 @@ func GetRoutes4() ([]Route4, error) {
 	lines := strings.Split(string(out), "\n")
 
 	routes := make([]Route4, 0)
+
+	devs, err := net.Interfaces()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get interfaces: %s", err)
+	}
 
 	for i := range lines {
 
@@ -109,9 +125,9 @@ func GetRoutes4() ([]Route4, error) {
 		route := Route4{}
 
 		// Iface
-		route.Interface, err = net.InterfaceByName(fields[0])
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse Ifcae: %s", err)
+		route.Interface = selectInterface(devs, fields[0])
+		if route.Interface == nil {
+			return nil, fmt.Errorf("interface not found: %s", fields[0])
 		}
 
 		// Destination
@@ -184,7 +200,6 @@ func GetRoutes4() ([]Route4, error) {
 }
 
 // getDefaultGateway4 returns the gateway route with the lowest Metric.
-// This function is only for globally routable addresses. For LAN, use GetIPv4Route().
 func getDefaultGateway4() (Route4, error) {
 
 	routes, err := GetRoutes4()
@@ -224,10 +239,10 @@ func GetRoute4(ip net.IP) (Route4, error) {
 	// Possible routes
 	pRoutes := make([]Route4, 0)
 
-	// First step: find the interface for the given ip
+	// First step: find the interface for the given ip, skipping route with 0.0.0.0 as destination
 	for i := range routes {
 
-		// For now, skip destinations that equals to  0.0.0.0
+		// skip destinations that equals to  0.0.0.0
 		if routes[i].Dest.Equal(net.IPv4(0x0, 0x0, 0x0, 0x0)) {
 			continue
 		}
@@ -247,21 +262,5 @@ func GetRoute4(ip net.IP) (Route4, error) {
 	// Sort the routes based on Metric
 	sort.Slice(pRoutes, func(i, j int) bool { return pRoutes[i].Metric < pRoutes[j].Metric })
 
-	// Select the only one, based on Interface name and Destination == 0.0.0.0
-	for i := range routes {
-
-		// Skip devices other than the lowest priority device
-		if routes[i].Interface.Name != pRoutes[0].Interface.Name {
-			continue
-		}
-
-		// Skip other routes, which destination not 0.0.0.0
-		if !routes[i].Dest.Equal(net.IPv4(0x0, 0x0, 0x0, 0x0)) {
-			continue
-		}
-
-		return routes[i], nil
-	}
-
-	return Route4{}, fmt.Errorf("not found")
+	return pRoutes[0], nil
 }
