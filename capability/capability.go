@@ -12,9 +12,19 @@ func CapToMask(x uint32) uint64 {
 	return (1 << ((x) & 31))
 }
 
-func Check(cap uint32) (bool, error) {
+// CapabilityCheck checks the given capability on pid.
+// If pid is -1, checks the current proccess.
+func CapabilityCheck(cap uint32, pid int) (bool, error) {
 
-	path := fmt.Sprintf("/proc/%d/status", os.Getpid())
+	if pid == -1 {
+		pid = os.Getpid()
+	}
+
+	path := fmt.Sprintf("/proc/%d/status", pid)
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false, fmt.Errorf("pid not exist: %d", pid)
+	}
 
 	out, err := os.ReadFile(path)
 	if err != nil {
@@ -44,7 +54,7 @@ func Check(cap uint32) (bool, error) {
 			return false, err
 		}
 
-		return eff&CapToMask(cap) != 0, err
+		return eff&CapToMask(cap) != 0, nil
 	}
 
 	return false, fmt.Errorf("CapEff not exist in %s", path)

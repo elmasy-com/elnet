@@ -7,12 +7,15 @@ import (
 
 func TestCheck(t *testing.T) {
 
-	ok, err := Check(CAP_CHOWN)
+	ok, err := CapabilityCheck(CAP_NET_ADMIN, -1)
 	if err != nil {
 		t.Errorf("Failed to check: %s\n", err)
 	}
 
-	if os.Geteuid() == 0 && !ok {
+	switch {
+	case os.Geteuid() != 0 && ok:
+		t.Errorf("CAP_CHOWN must NOT be set")
+	case os.Geteuid() == 0 && !ok:
 		t.Errorf("CAP_CHOWN must be set")
 	}
 }
