@@ -1,6 +1,8 @@
 package domain
 
-import "strings"
+import (
+	"strings"
+)
 
 // IsValid checks if a string is a presentation-format domain name
 // (currently restricted to hostname-compatible "preferred name" LDH labels and
@@ -10,6 +12,10 @@ func IsValid(s string) bool {
 	/*
 		A copy from // A copy from https://github.com/golang/go/blob/3e387528e54971d6009fe8833dcab6fc08737e04/src/net/dnsclient.go#L78
 	*/
+
+	if !strings.Contains(s, ".") {
+		return false
+	}
 
 	// The root domain name is valid. See golang.org/issue/45715.
 	if s == "." {

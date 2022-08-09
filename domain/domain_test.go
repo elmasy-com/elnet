@@ -7,6 +7,10 @@ func TestIsValid(t *testing.T) {
 	if !IsValid("elmasy.com") {
 		t.Errorf("elmasy.com is invalid\n")
 	}
+
+	if IsValid("aaaaaa") {
+		t.Errorf("aaaaaa is valid!\n")
+	}
 }
 
 func TestGetTLD(t *testing.T) {
