@@ -15,7 +15,7 @@ func TestIsValid(t *testing.T) {
 
 func TestGetTLD(t *testing.T) {
 
-	tld := GetTLD("elmasy.com")
+	tld := GetTLD("test.elmasy.com")
 
 	if tld != "com" {
 		t.Errorf("TLD not found, result: \"%s\"\n", tld)

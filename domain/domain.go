@@ -85,7 +85,7 @@ func GetTLD(d string) string {
 		return ""
 	}
 
-	return parts[1]
+	return parts[len(parts)-1]
 }
 
 // GetSub returns the Subdomain (Third Level Domain) of the given domain d.
