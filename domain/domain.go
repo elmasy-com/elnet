@@ -98,7 +98,11 @@ func GetSub(d string) string {
 		return ""
 	}
 
-	return parts[0]
+	// Removes the domain and TLD
+	parts = parts[:len(parts)-1]
+	parts = parts[:len(parts)-1]
+
+	return strings.Join(parts, ".")
 }
 
 // GetDomain returns the domain of d (eg.: sub.example.com -> example.com).

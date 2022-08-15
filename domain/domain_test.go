@@ -15,7 +15,7 @@ func TestIsValid(t *testing.T) {
 
 func TestGetTLD(t *testing.T) {
 
-	tld := GetTLD("test.elmasy.com")
+	tld := GetTLD("test.test.elmasy.com")
 
 	if tld != "com" {
 		t.Errorf("TLD not found, result: \"%s\"\n", tld)
@@ -24,9 +24,9 @@ func TestGetTLD(t *testing.T) {
 
 func TestGetSub(t *testing.T) {
 
-	sub := GetSub("test.elmasy.com")
+	sub := GetSub("test.test.elmasy.com")
 
-	if sub != "test" {
+	if sub != "test.test" {
 		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
 	}
 
