@@ -45,3 +45,14 @@ func TestGetDomain(t *testing.T) {
 		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
 	}
 }
+
+func TestIsWildcard(t *testing.T) {
+
+	if !IsWildcard("*.elmasy.com") {
+		t.Errorf("*.elmasy.com should be a wildcard\n")
+	}
+
+	if IsWildcard("test.elmasy.com") {
+		t.Errorf("test.elmasy.com should NOT be a wildcard\n")
+	}
+}

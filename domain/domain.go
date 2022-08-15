@@ -113,3 +113,11 @@ func GetDomain(d string) string {
 
 	return parts[len(parts)-2] + "." + parts[len(parts)-1]
 }
+
+// IsWildcard returns whether the given domain d is a wildcard domain.
+func IsWildcard(d string) bool {
+
+	s := GetSub(d)
+
+	return s == "*"
+}
