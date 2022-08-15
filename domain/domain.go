@@ -76,7 +76,7 @@ func IsValid(s string) bool {
 }
 
 // GetTLD returns the Top-Level Domain of the given domain d.
-// Returns an empty string ("") if d is not a valid domain or tld not found.
+// Returns an empty string ("") if tld not found.
 func GetTLD(d string) string {
 
 	parts := strings.Split(d, ".")
@@ -89,7 +89,7 @@ func GetTLD(d string) string {
 }
 
 // GetSub returns the Subdomain (Third Level Domain) of the given domain d.
-// Returns an empty string ("") if d is not a valid domain or the subdomain not found.
+// Returns an empty string ("") if the subdomain not found.
 func GetSub(d string) string {
 
 	parts := strings.Split(d, ".")
@@ -99,4 +99,17 @@ func GetSub(d string) string {
 	}
 
 	return parts[0]
+}
+
+// GetDomain returns the domain of d (eg.: sub.example.com -> example.com).
+// Returns an empty string ("") if the domain was nor found.
+func GetDomain(d string) string {
+
+	parts := strings.Split(d, ".")
+
+	if len(parts) < 2 {
+		return ""
+	}
+
+	return parts[len(parts)-2] + "." + parts[len(parts)-1]
 }

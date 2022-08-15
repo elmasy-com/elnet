@@ -29,4 +29,19 @@ func TestGetSub(t *testing.T) {
 	if sub != "test" {
 		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
 	}
+
+	sub = GetSub(".elmasy.com")
+
+	if sub != "" {
+		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
+	}
+}
+
+func TestGetDomain(t *testing.T) {
+
+	sub := GetDomain("test.elmasy.com")
+
+	if sub != "elmasy.com" {
+		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
+	}
 }
