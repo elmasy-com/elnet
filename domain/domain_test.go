@@ -24,9 +24,9 @@ func TestGetTLD(t *testing.T) {
 
 func TestGetSub(t *testing.T) {
 
-	sub := GetSub("test.test.elmasy.com")
+	sub := GetSub("test.test.test.elmasy.com")
 
-	if sub != "test.test" {
+	if sub != "test.test.test" {
 		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
 	}
 
@@ -39,7 +39,7 @@ func TestGetSub(t *testing.T) {
 
 func TestGetDomain(t *testing.T) {
 
-	sub := GetDomain("test.elmasy.com")
+	sub := GetDomain("test.test.test.elmasy.com")
 
 	if sub != "elmasy.com" {
 		t.Errorf("subdomain not found, result: \"%s\"\n", sub)

@@ -115,7 +115,7 @@ func GetDomain(d string) string {
 		return ""
 	}
 
-	return parts[len(parts)-2] + "." + parts[len(parts)-1]
+	return strings.Join(parts[len(parts)-2:], ".")
 }
 
 // IsWildcard returns whether the given domain d is a wildcard domain.
