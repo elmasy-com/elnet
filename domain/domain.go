@@ -13,7 +13,12 @@ func IsValid(s string) bool {
 		A copy from // A copy from https://github.com/golang/go/blob/3e387528e54971d6009fe8833dcab6fc08737e04/src/net/dnsclient.go#L78
 	*/
 
-	if !strings.Contains(s, ".") {
+	switch {
+	case len(s) == 0:
+		return false
+	case !strings.Contains(s, "."):
+		return false
+	case strings.Contains(s, " "):
 		return false
 	}
 
