@@ -118,8 +118,7 @@ func GetSub(d string) string {
 	}
 
 	// Removes the domain and TLD
-	parts = parts[:len(parts)-1]
-	parts = parts[:len(parts)-1]
+	parts = parts[:len(parts)-2]
 
 	return strings.Join(parts, ".")
 }
