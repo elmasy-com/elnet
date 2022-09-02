@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"bytes"
 	"strings"
 )
 
@@ -93,6 +94,19 @@ func GetTLD(d string) string {
 	return parts[len(parts)-1]
 }
 
+// GetTLDBytes returns the Top-Level Domain of the given domain d.
+// Returns nil if tld not found.
+func GetTLDBytes(d []byte) []byte {
+
+	parts := bytes.Split(d, []byte("."))
+
+	if len(parts) < 2 {
+		return nil
+	}
+
+	return parts[len(parts)-1]
+}
+
 // GetSub returns the Subdomain (Third Level Domain) of the given domain d.
 // Returns an empty string ("") if the subdomain not found.
 func GetSub(d string) string {
@@ -108,6 +122,22 @@ func GetSub(d string) string {
 	parts = parts[:len(parts)-1]
 
 	return strings.Join(parts, ".")
+}
+
+// GetSubBytes returns the Subdomain (Third Level Domain) of the given domain d.
+// Returns nil if the subdomain not found.
+func GetSubBytes(d []byte) []byte {
+
+	parts := bytes.Split(d, []byte("."))
+
+	if len(parts) < 3 {
+		return nil
+	}
+
+	// Removes the domain and TLD
+	parts = parts[:len(parts)-2]
+
+	return bytes.Join(parts, []byte("."))
 }
 
 // GetDomain returns the domain of d (eg.: sub.example.com -> example.com).

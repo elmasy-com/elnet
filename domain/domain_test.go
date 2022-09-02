@@ -1,6 +1,9 @@
 package domain
 
-import "testing"
+import (
+	"bytes"
+	"testing"
+)
 
 func TestIsValid(t *testing.T) {
 
@@ -22,6 +25,15 @@ func TestGetTLD(t *testing.T) {
 	}
 }
 
+func TestGetTLDbytes(t *testing.T) {
+
+	tld := GetTLDBytes([]byte("test.test.elmasy.com"))
+
+	if !bytes.Equal(tld, []byte("com")) {
+		t.Errorf("TLD bytes not found, result: \"%v\"\n", tld)
+	}
+}
+
 func TestGetSub(t *testing.T) {
 
 	sub := GetSub("test.test.test.elmasy.com")
@@ -33,6 +45,21 @@ func TestGetSub(t *testing.T) {
 	sub = GetSub(".elmasy.com")
 
 	if sub != "" {
+		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
+	}
+}
+
+func TestGetSubBytes(t *testing.T) {
+
+	sub := GetSubBytes([]byte("test.test.test.elmasy.com"))
+
+	if !bytes.Equal(sub, []byte("test.test.test")) {
+		t.Errorf("subdomain bytes not found, result: \"%v\"\n", sub)
+	}
+
+	sub = GetSubBytes([]byte(".elmasy.com"))
+
+	if sub != nil {
 		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
 	}
 }
