@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"bytes"
 	"testing"
 )
 
@@ -14,23 +13,34 @@ func TestIsValid(t *testing.T) {
 	if IsValid("aaaaaa") {
 		t.Errorf("aaaaaa is valid!\n")
 	}
+
+	if IsValid("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.elmasy.com") {
+		t.Errorf("long aaaaaa is valid\n")
+	}
+
+	if IsValid("") {
+		t.Errorf("empty is valid!\n")
+	}
 }
 
 func TestGetTLD(t *testing.T) {
 
 	tld := GetTLD("test.test.elmasy.com")
 
-	if tld != "com" {
+	if string(tld) != "com" {
 		t.Errorf("TLD not found, result: \"%s\"\n", tld)
 	}
-}
 
-func TestGetTLDbytes(t *testing.T) {
+	tld = GetTLD("test.test.elmasy.test")
 
-	tld := GetTLDBytes([]byte("test.test.elmasy.com"))
+	if string(tld) != "test" {
+		t.Errorf("TLD not found, result: \"%s\"\n", tld)
+	}
 
-	if !bytes.Equal(tld, []byte("com")) {
-		t.Errorf("TLD bytes not found, result: \"%v\"\n", tld)
+	tld = GetTLD("test.test.elmasy.")
+
+	if tld != nil {
+		t.Errorf("TLD found for empty, result: \"%s\"\n", tld)
 	}
 }
 
@@ -38,26 +48,11 @@ func TestGetSub(t *testing.T) {
 
 	sub := GetSub("test.test.test.elmasy.com")
 
-	if sub != "test.test.test" {
+	if string(sub) != "test.test.test" {
 		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
 	}
 
 	sub = GetSub(".elmasy.com")
-
-	if sub != "" {
-		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
-	}
-}
-
-func TestGetSubBytes(t *testing.T) {
-
-	sub := GetSubBytes([]byte("test.test.test.elmasy.com"))
-
-	if !bytes.Equal(sub, []byte("test.test.test")) {
-		t.Errorf("subdomain bytes not found, result: \"%v\"\n", sub)
-	}
-
-	sub = GetSubBytes([]byte(".elmasy.com"))
 
 	if sub != nil {
 		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
@@ -68,8 +63,26 @@ func TestGetDomain(t *testing.T) {
 
 	sub := GetDomain("test.test.test.elmasy.com")
 
-	if sub != "elmasy.com" {
+	if string(sub) != "elmasy.com" {
 		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
+	}
+
+	sub = GetDomain("test.test.test.elmasy.")
+
+	if sub != nil {
+		t.Errorf("subdomain found for empty tld, result: \"%s\"\n", sub)
+	}
+
+	sub = GetDomain("test.test.test..com")
+
+	if sub != nil {
+		t.Errorf("subdomain found for empty domain, result: \"%s\"\n", sub)
+	}
+
+	sub = GetDomain("test.test.test..")
+
+	if sub != nil {
+		t.Errorf("subdomain found for full empty, result: \"%s\"\n", sub)
 	}
 }
 
@@ -81,5 +94,9 @@ func TestIsWildcard(t *testing.T) {
 
 	if IsWildcard("test.elmasy.com") {
 		t.Errorf("test.elmasy.com should NOT be a wildcard\n")
+	}
+
+	if IsWildcard(".elmasy.com") {
+		t.Errorf(".elmasy.com should NOT be a wildcard\n")
 	}
 }
