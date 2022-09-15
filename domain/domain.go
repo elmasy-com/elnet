@@ -1,40 +1,22 @@
 package domain
 
 import (
-	"bytes"
+	"strings"
 )
-
-type ByteSeq interface {
-	[]byte | string
-}
 
 // IsValid checks if a ByteSeq is a presentation-format domain name
 // (currently restricted to hostname-compatible "preferred name" LDH labels and
 // SRV-like "underscore labels".
-func IsValid[T ByteSeq](d T) bool {
+func IsValid(d string) bool {
 
 	/*
 		The base is a copy from // A copy from https://github.com/golang/go/blob/3e387528e54971d6009fe8833dcab6fc08737e04/src/net/dnsclient.go#L78
 	*/
 
-	var (
-		s []byte
-		l int
-	)
-
-	switch v := any(d).(type) {
-	case []byte:
-		s = v
-	case string:
-		s = []byte(v)
-	default:
-		panic("Invalid type")
-	}
-
-	l = len(s)
+	l := len(d)
 
 	switch {
-	case l == 0 || l > 254 || l == 254 && s[l-1] != '.':
+	case l == 0 || l > 254 || l == 254 && d[l-1] != '.':
 		// See RFC 1035, RFC 3696.
 		// Presentation format has dots before every label except the first, and the
 		// terminal empty label is optional here because we assume fully-qualified
@@ -44,11 +26,11 @@ func IsValid[T ByteSeq](d T) bool {
 		// So our _effective_ maximum is 253, but 254 is not rejected if the last
 		// character is a dot.
 		return false
-	case !bytes.Contains(s, []byte{byte('.')}):
+	case !strings.Contains(d, "."):
 		return false
-	case bytes.Contains(s, []byte{' '}):
+	case strings.Contains(d, " "):
 		return false
-	case bytes.Equal(s, []byte{'.'}):
+	case d == ".":
 		// The root domain name is valid. See golang.org/issue/45715.
 		return true
 	}
@@ -56,8 +38,8 @@ func IsValid[T ByteSeq](d T) bool {
 	last := byte('.')
 	nonNumeric := false // true once we've seen a letter or hyphen
 	partlen := 0
-	for i := 0; i < len(s); i++ {
-		c := s[i]
+	for i := 0; i < len(d); i++ {
+		c := d[i]
 		switch {
 		default:
 			return false
@@ -94,94 +76,120 @@ func IsValid[T ByteSeq](d T) bool {
 }
 
 // GetTLD returns the Top-Level Domain of the given domain d.
-// Returns nil if tld not found.
-func GetTLD[T ByteSeq](d T) []byte {
+// Returns an empty string if tld not found.
+// This function returns a slice of d, does not allocate a new string.
+func GetTLD(d string) string {
 
-	var b []byte
+	i := len(d) // The index of the occurence of  the dot
 
-	switch v := any(d).(type) {
-	case string:
-		b = []byte(v)
-	case []byte:
-		b = v
-	default:
-		panic("Invalid type")
+	// Got an empty string or a dot (root name server)
+	if i == 0 {
+		return d
 	}
 
-	parts := bytes.Split(b, []byte{'.'})
-
-	if len(parts) < 2 {
-		return nil
+	// Domain names with a dot at the end are valid.
+	// Remove the last dot from the string.
+	if d[i-1] == '.' {
+		d = d[:i-1]
+		i--
 	}
 
-	if len(parts[len(parts)-1]) == 0 {
-		return nil
+	i = strings.LastIndexByte(d[:i], '.')
+	if i == -1 {
+		return d
 	}
 
-	return parts[len(parts)-1]
-}
-
-// GetSub returns the Subdomain (Third Level Domain) of the given domain d.
-// Returns nil if the subdomain not found.
-func GetSub[T ByteSeq](d T) []byte {
-
-	var b []byte
-
-	switch v := any(d).(type) {
-	case string:
-		b = []byte(v)
-	case []byte:
-		b = v
-	default:
-		panic("Invalid type")
+	if d[:i] == "" {
+		return ""
 	}
 
-	parts := bytes.Split(b, []byte{'.'})
-
-	if len(parts) < 3 {
-		return nil
-	}
-
-	// Remove the domain and the tld and pass to Join()
-	return bytes.Join(parts[:len(parts)-2], []byte("."))
+	return d[i+1:]
 }
 
 // GetDomain returns the domain of d (eg.: sub.example.com -> example.com).
-// Returns nil if the domain was nor found.
-func GetDomain[T ByteSeq](d T) []byte {
+// Returns an empty string if domain not found.
+// This function returns a slice of d, does not allocate a new string.
+func GetDomain(d string) string {
 
-	var b []byte
+	i := len(d) // The index of the occurence of  the dot
 
-	switch v := any(d).(type) {
-	case string:
-		b = []byte(v)
-	case []byte:
-		b = v
-	default:
-		panic("Invalid type")
+	// Got an empty string
+	if i == 0 {
+		return d
 	}
 
-	parts := bytes.Split(b, []byte{'.'})
-
-	l := len(parts)
-
-	switch {
-	case l < 2:
-		return nil
-	case len(parts[l-1]) == 0:
-		return nil
-	case len(parts[l-2]) == 0:
-		return nil
-
+	// Domain names with a dot at the end are valid.
+	// Remove the last dot from the string.
+	if d[i-1] == '.' {
+		d = d[:i-1]
+		i--
 	}
 
-	return bytes.Join(parts[len(parts)-2:], []byte{'.'})
+	// Get the index of the tld
+	i = strings.LastIndexByte(d[:i], '.')
+	if i == -1 {
+		return ""
+	}
+
+	// Nothng before the dot (eg.: .com)
+	if d[:i] == "" {
+		return ""
+	}
+
+	// Get the index of the domain
+	i = strings.LastIndexByte(d[:i], '.')
+	if i == -1 {
+		// The second dot not found, so d is a domain without subdomain
+		return d
+	}
+
+	// Nothng before the dot (eg.: .elmasy.com)
+	if d[:i] == "" {
+		return ""
+	}
+
+	return d[i+1:]
+}
+
+// GetSub returns the Subdomain (Third Level Domain) of the given domain d.
+// Returns an empty string if subdomain not found.
+// This function returns a slice of d, does not allocate a new string.
+func GetSub(d string) string {
+
+	i := len(d) // The index of the occurence of  the dot
+
+	// Got an empty string
+	if i == 0 {
+		return d
+	}
+
+	// Domain names with a dot at the end are valid.
+	// Remove the last dot from the original and from the copy.
+	if d[i-1] == '.' {
+		d = d[:i-1]
+		i--
+	}
+
+	// Get the index of the tld
+	i = strings.LastIndexByte(d[:i], '.')
+	if i == -1 {
+		return ""
+	}
+
+	// Get the index of the domain
+	i = strings.LastIndexByte(d[:i], '.')
+	if i == -1 {
+		// The second dot not found, so d is a domain without subdomain
+		return ""
+	}
+
+	return d[:i]
 }
 
 // IsWildcard returns whether the given domain d is a wildcard domain.
-func IsWildcard[T ByteSeq](d T) bool {
+func IsWildcard(d string) bool {
 
 	s := GetSub(d)
 
-	return bytes.Equal(s, []byte{'*'})
+	return s == "*"
 }

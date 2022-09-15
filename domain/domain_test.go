@@ -23,66 +23,112 @@ func TestIsValid(t *testing.T) {
 	}
 }
 
-func TestGetTLD(t *testing.T) {
+func BenchmarkIsValid(b *testing.B) {
 
-	tld := GetTLD("test.test.elmasy.com")
-
-	if string(tld) != "com" {
-		t.Errorf("TLD not found, result: \"%s\"\n", tld)
-	}
-
-	tld = GetTLD("test.test.elmasy.test")
-
-	if string(tld) != "test" {
-		t.Errorf("TLD not found, result: \"%s\"\n", tld)
-	}
-
-	tld = GetTLD("test.test.elmasy.")
-
-	if tld != nil {
-		t.Errorf("TLD found for empty, result: \"%s\"\n", tld)
+	for i := 0; i < b.N; i++ {
+		IsValid("test.elmasy.com.")
 	}
 }
 
-func TestGetSub(t *testing.T) {
+func TestGetTLD(t *testing.T) {
 
-	sub := GetSub("test.test.test.elmasy.com")
-
-	if string(sub) != "test.test.test" {
-		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
+	// 1. element = test string
+	// 2. element = wanted result
+	cases := [][2]string{
+		{"", ""},
+		{".", ""},
+		{"com", "com"},
+		{"com.", "com"},
+		{".com", ""},
+		{".com.", ""},
+		{"elmasy.com", "com"},
+		{"elmasy.com.", "com"},
+		{".elmasy.com", "com"},
+		{".elmasy.com.", "com"},
+		{"test.test.elmasy.com", "com"},
+		{"test.test.elmasy.com.", "com"},
 	}
 
-	sub = GetSub(".elmasy.com")
+	for i := range cases {
+		tld := GetTLD(cases[i][0])
+		if tld != cases[i][1] {
+			t.Errorf("Case: %s, want: %s, got: %s\n", cases[i][0], cases[i][1], tld)
+		}
+	}
+}
 
-	if sub != nil {
-		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
+func BenchmarkGetTLD(b *testing.B) {
+
+	for i := 0; i < b.N; i++ {
+		GetTLD("test.elmasy.com.")
 	}
 }
 
 func TestGetDomain(t *testing.T) {
 
-	sub := GetDomain("test.test.test.elmasy.com")
-
-	if string(sub) != "elmasy.com" {
-		t.Errorf("subdomain not found, result: \"%s\"\n", sub)
+	// 1. element = test string
+	// 2. element = wanted result
+	cases := [][2]string{
+		{"", ""},
+		{".", ""},
+		{"com", ""},
+		{"com.", ""},
+		{".com", ""},
+		{".com.", ""},
+		{"elmasy.com", "elmasy.com"},
+		{"elmasy.com.", "elmasy.com"},
+		{".elmasy.com", ""},
+		{".elmasy.com.", ""},
+		{"test.test.elmasy.com", "elmasy.com"},
+		{"test.test.elmasy.com.", "elmasy.com"},
 	}
 
-	sub = GetDomain("test.test.test.elmasy.")
+	for i := range cases {
+		tld := GetDomain(cases[i][0])
+		if tld != cases[i][1] {
+			t.Errorf("Case: %s, want: %s, got: %s\n", cases[i][0], cases[i][1], tld)
+		}
+	}
+}
 
-	if sub != nil {
-		t.Errorf("subdomain found for empty tld, result: \"%s\"\n", sub)
+func BenchmarkGetDomain(b *testing.B) {
+
+	for i := 0; i < b.N; i++ {
+		GetDomain("test.elmasy.com.")
+	}
+}
+
+func TestGetSub(t *testing.T) {
+
+	// 1. element = test string
+	// 2. element = wanted result
+	cases := [][2]string{
+		{"", ""},
+		{".", ""},
+		{"com", ""},
+		{"com.", ""},
+		{".com", ""},
+		{".com.", ""},
+		{"elmasy.com", ""},
+		{"elmasy.com.", ""},
+		{".elmasy.com", ""},
+		{".elmasy.com.", ""},
+		{"test.test.elmasy.com", "test.test"},
+		{"test.test.elmasy.com.", "test.test"},
 	}
 
-	sub = GetDomain("test.test.test..com")
-
-	if sub != nil {
-		t.Errorf("subdomain found for empty domain, result: \"%s\"\n", sub)
+	for i := range cases {
+		tld := GetSub(cases[i][0])
+		if tld != cases[i][1] {
+			t.Errorf("Case: %s, want: %s, got: %s\n", cases[i][0], cases[i][1], tld)
+		}
 	}
+}
 
-	sub = GetDomain("test.test.test..")
+func BenchmarkGetSub(b *testing.B) {
 
-	if sub != nil {
-		t.Errorf("subdomain found for full empty, result: \"%s\"\n", sub)
+	for i := 0; i < b.N; i++ {
+		GetSub("test.elmasy.com.")
 	}
 }
 
@@ -98,5 +144,12 @@ func TestIsWildcard(t *testing.T) {
 
 	if IsWildcard(".elmasy.com") {
 		t.Errorf(".elmasy.com should NOT be a wildcard\n")
+	}
+}
+
+func BenchmarkIsWildCard(b *testing.B) {
+
+	for i := 0; i < b.N; i++ {
+		IsWildcard("test.elmasy.com.")
 	}
 }
