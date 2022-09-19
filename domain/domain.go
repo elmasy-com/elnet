@@ -77,13 +77,14 @@ func IsValid(d string) bool {
 
 // IsReservedSecondLevel resturns whether d is a reserved second level domain (eg.: co.uk).
 func IsReservedSecondLevel(tld string) bool {
-
-	// co.X
-	if tld == "co.uk" || tld == "co.jp" || tld == "co.kr" || tld == "co.th" || tld == "co.za" ||
-
+	// ac.X
+	if tld == "ac.uk" || tld == "ac.id" ||
+		tld == "asu.edu" ||
+		// co.X
+		tld == "co.uk" || tld == "co.jp" || tld == "co.kr" || tld == "co.th" || tld == "co.za" || tld == "co.nz" || tld == "co.il" ||
 		// com.X
-		tld == "com.br" || tld == "com.my" || tld == "com.tr" || tld == "com.pl" || tld == "com.tw" || tld == "com.ng" || tld == "com.au" ||
-
+		tld == "com.br" || tld == "com.my" || tld == "com.tr" || tld == "com.pl" || tld == "com.tw" || tld == "com.ng" ||
+		tld == "com.au" || tld == "com.ar" || tld == "com.ua" || tld == "com.cn" ||
 		// org.X
 		tld == "org.uk" {
 		return true
