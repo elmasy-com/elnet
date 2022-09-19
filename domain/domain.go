@@ -75,35 +75,21 @@ func IsValid(d string) bool {
 	return nonNumeric
 }
 
-// GetTLD returns the Top-Level Domain of the given domain d.
-// Returns an empty string if tld not found.
-// This function returns a slice of d, does not allocate a new string.
-func GetTLD(d string) string {
+// IsReservedSecondLevel resturns whether d is a reserved second level domain (eg.: co.uk).
+func IsReservedSecondLevel(tld string) bool {
 
-	i := len(d) // The index of the occurence of  the dot
+	// co.X
+	if tld == "co.uk" || tld == "co.jp" || tld == "co.kr" || tld == "co.th" || tld == "co.za" ||
 
-	// Got an empty string or a dot (root name server)
-	if i == 0 {
-		return d
+		// com.X
+		tld == "com.br" || tld == "com.my" || tld == "com.tr" || tld == "com.pl" || tld == "com.tw" || tld == "com.ng" || tld == "com.au" ||
+
+		// org.X
+		tld == "org.uk" {
+		return true
 	}
 
-	// Domain names with a dot at the end are valid.
-	// Remove the last dot from the string.
-	if d[i-1] == '.' {
-		d = d[:i-1]
-		i--
-	}
-
-	i = strings.LastIndexByte(d[:i], '.')
-	if i == -1 {
-		return d
-	}
-
-	if d[:i] == "" {
-		return ""
-	}
-
-	return d[i+1:]
+	return false
 }
 
 // GetDomain returns the domain of d (eg.: sub.example.com -> example.com).
@@ -113,9 +99,9 @@ func GetDomain(d string) string {
 
 	i := len(d) // The index of the occurence of  the dot
 
-	// Got an empty string
-	if i == 0 {
-		return d
+	// Need at least 3 character to get a domain (eg.: a.a)
+	if i < 3 {
+		return ""
 	}
 
 	// Domain names with a dot at the end are valid.
@@ -125,26 +111,53 @@ func GetDomain(d string) string {
 		i--
 	}
 
-	// Get the index of the tld
+	// Get the first dot, the TLD
 	i = strings.LastIndexByte(d[:i], '.')
 	if i == -1 {
+		// No dot in d, so cant get the domain name: d is invalid.
 		return ""
 	}
 
-	// Nothng before the dot (eg.: .com)
+	// Nothing before the dot: d is invalid (eg.: .com)
 	if d[:i] == "" {
 		return ""
 	}
 
-	// Get the index of the domain
+	// Get the second dot, the domain
 	i = strings.LastIndexByte(d[:i], '.')
 	if i == -1 {
-		// The second dot not found, so d is a domain without subdomain
+		// The second dot not found, so d has only one dot and two fields (eg.: elmasy.com)
+		// d can be a reserved second level domain (eg.: co.uk) or a valid domain name.
+		if IsReservedSecondLevel(d) {
+			return ""
+		}
+
 		return d
 	}
 
-	// Nothng before the dot (eg.: .elmasy.com)
+	// Nothing before the second dot: d is invalid (eg.: .elmasy.com)
 	if d[:i] == "" {
+		return ""
+	}
+
+	// Check reserved second level domain with the second dot's index.
+	if IsReservedSecondLevel(d[i+1:]) {
+		// d is including a reserved second level domain, so we need the third dot.
+		// Get the third dot, the domain before a reserved second level domain (eg.: elmasy.co.uk)
+		i = strings.LastIndexByte(d[:i], '.')
+		if i == -1 {
+			// The third dot not found, so d is a domain (eg.: elmasy.co.uk)
+			return d
+		}
+
+		// Nothing before the third dot, d is invalid
+		if d[:i] == "" {
+			return ""
+		}
+	}
+
+	// The subdomain starts with a dot: d is invalid
+	if d[0] == '.' {
 		return ""
 	}
 
@@ -158,28 +171,55 @@ func GetSub(d string) string {
 
 	i := len(d) // The index of the occurence of  the dot
 
-	// Got an empty string
-	if i == 0 {
-		return d
+	// Need at least 5 character to get a subdomain (eg.: a.a.a)
+	if i < 5 {
+		return ""
 	}
 
 	// Domain names with a dot at the end are valid.
-	// Remove the last dot from the original and from the copy.
+	// Remove the last dot from the string.
 	if d[i-1] == '.' {
 		d = d[:i-1]
 		i--
 	}
 
-	// Get the index of the tld
+	// Get the first dot, the TLD
 	i = strings.LastIndexByte(d[:i], '.')
 	if i == -1 {
+		// No dot in d, so cant get the subdomain: d is invalid.
 		return ""
 	}
 
-	// Get the index of the domain
+	// Nothing before the dot: d is invalid (eg.: .com)
+	if d[:i] == "" {
+		return ""
+	}
+
+	// Get the second dot, the domain
 	i = strings.LastIndexByte(d[:i], '.')
 	if i == -1 {
-		// The second dot not found, so d is a domain without subdomain
+		// No second dot in d, so no subdomain: d is invalid.
+		return ""
+	}
+
+	// Nothing before the second dot: d is invalid (eg.: .elmasy.com)
+	if d[:i] == "" {
+		return ""
+	}
+
+	// Check reserved second level domain with the second dot's index.
+	if IsReservedSecondLevel(d[i+1:]) {
+		// d is include a reserved second level domain, so we need the third dot.
+		// Get the third dot, to get the domain before a reserved second level domain (eg.: elmasy.co.uk)
+		i = strings.LastIndexByte(d[:i], '.')
+		if i == -1 {
+			// The third dot not found, so no subdomain: d is invalid
+			return ""
+		}
+	}
+
+	// The subdomain starts with a dot: d is invalid
+	if d[0] == '.' {
 		return ""
 	}
 
