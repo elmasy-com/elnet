@@ -1,5 +1,7 @@
 github.com/elmasy-com/identify v1.1.0 h1:RWW4FE+6gRpt9lATAyRojwsDiC/hLgO3B9TDdl98sbA=
 github.com/elmasy-com/identify v1.1.0/go.mod h1:RNwFDjyTfqXDvasuNI/PM4s4M7mmH7SsZfMxUDLQkC4=
+github.com/elmasy-com/slices v0.0.0-20220420084118-01ac765fdcea h1:CuJ/8JdIKTAU0p/1ArsXhSafAvA9Fa7BFYl+XwMNzQo=
+github.com/elmasy-com/slices v0.0.0-20220420084118-01ac765fdcea/go.mod h1:0DO/qXOgrnrXU44i+9JQzusxxxx6WPPW7WQeV/RJLLM=
 github.com/google/gopacket v1.1.19 h1:ves8RnFZPGiFnTS0uPQStjwru6uO6h+nlr9j6fL7kF8=
 github.com/google/gopacket v1.1.19/go.mod h1:iJ8V8n6KS+z2U1A8pUwu8bW5SyEMkXJB8Yo/Vo+TKTo=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

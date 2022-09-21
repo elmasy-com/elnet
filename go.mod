@@ -8,4 +8,7 @@ require (
 	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8
 )
 
-require golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
+require (
+	github.com/elmasy-com/slices v0.0.0-20220420084118-01ac765fdcea // indirect
+	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
+)
