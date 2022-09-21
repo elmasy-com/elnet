@@ -75,24 +75,6 @@ func IsValid(d string) bool {
 	return nonNumeric
 }
 
-// IsReservedSecondLevel resturns whether d is a reserved second level domain (eg.: co.uk).
-func IsReservedSecondLevel(tld string) bool {
-	// ac.X
-	if tld == "ac.uk" || tld == "ac.id" ||
-		tld == "asu.edu" ||
-		// co.X
-		tld == "co.uk" || tld == "co.jp" || tld == "co.kr" || tld == "co.th" || tld == "co.za" || tld == "co.nz" || tld == "co.il" ||
-		// com.X
-		tld == "com.br" || tld == "com.my" || tld == "com.tr" || tld == "com.pl" || tld == "com.tw" || tld == "com.ng" ||
-		tld == "com.au" || tld == "com.ar" || tld == "com.ua" || tld == "com.cn" ||
-		// org.X
-		tld == "org.uk" {
-		return true
-	}
-
-	return false
-}
-
 // GetDomain returns the domain of d (eg.: sub.example.com -> example.com).
 // Returns an empty string if domain not found.
 // This function returns a slice of d, does not allocate a new string.
@@ -129,7 +111,7 @@ func GetDomain(d string) string {
 	if i == -1 {
 		// The second dot not found, so d has only one dot and two fields (eg.: elmasy.com)
 		// d can be a reserved second level domain (eg.: co.uk) or a valid domain name.
-		if IsReservedSecondLevel(d) {
+		if IsRestrictedSLD(d) {
 			return ""
 		}
 
@@ -142,7 +124,7 @@ func GetDomain(d string) string {
 	}
 
 	// Check reserved second level domain with the second dot's index.
-	if IsReservedSecondLevel(d[i+1:]) {
+	if IsRestrictedSLD(d[i+1:]) {
 		// d is including a reserved second level domain, so we need the third dot.
 		// Get the third dot, the domain before a reserved second level domain (eg.: elmasy.co.uk)
 		i = strings.LastIndexByte(d[:i], '.')
@@ -209,7 +191,7 @@ func GetSub(d string) string {
 	}
 
 	// Check reserved second level domain with the second dot's index.
-	if IsReservedSecondLevel(d[i+1:]) {
+	if IsRestrictedSLD(d[i+1:]) {
 		// d is include a reserved second level domain, so we need the third dot.
 		// Get the third dot, to get the domain before a reserved second level domain (eg.: elmasy.co.uk)
 		i = strings.LastIndexByte(d[:i], '.')

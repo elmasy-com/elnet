@@ -23,10 +23,10 @@ func TestIsValid(t *testing.T) {
 	}
 }
 
-func BenchmarkIsReservedSecondLevel(b *testing.B) {
+func BenchmarkIsRestrictedSLD(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
-		IsReservedSecondLevel("co.uk")
+		IsRestrictedSLD("co.uk")
 	}
 }
 
