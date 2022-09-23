@@ -1,7 +1,10 @@
 package domain
 
 import (
+	"fmt"
 	"strings"
+
+	"golang.org/x/net/publicsuffix"
 )
 
 // IsValid checks if a ByteSeq is a presentation-format domain name
@@ -10,8 +13,8 @@ import (
 func IsValid(d string) bool {
 
 	/*
-		The base is a copy from // A copy from https://github.com/golang/go/blob/3e387528e54971d6009fe8833dcab6fc08737e04/src/net/dnsclient.go#L78
-	*/
+	 * The base is a copy from https://github.com/golang/go/blob/3e387528e54971d6009fe8833dcab6fc08737e04/src/net/dnsclient.go#L78
+	 */
 
 	l := len(d)
 
@@ -76,143 +79,61 @@ func IsValid(d string) bool {
 }
 
 // GetDomain returns the domain of d (eg.: sub.example.com -> example.com).
-// Returns an empty string if domain not found.
-// This function returns a slice of d, does not allocate a new string.
-func GetDomain(d string) string {
+func GetDomain(d string) (string, error) {
 
-	i := len(d) // The index of the occurence of  the dot
-
-	// Need at least 3 character to get a domain (eg.: a.a)
-	if i < 3 {
-		return ""
+	switch {
+	case d == "":
+		return "", fmt.Errorf("domain is empty")
+	case d[len(d)-1] == '.':
+		d = d[:len(d)-1]
 	}
 
-	// Domain names with a dot at the end are valid.
-	// Remove the last dot from the string.
-	if d[i-1] == '.' {
-		d = d[:i-1]
-		i--
-	}
-
-	// Get the first dot, the TLD
-	i = strings.LastIndexByte(d[:i], '.')
-	if i == -1 {
-		// No dot in d, so cant get the domain name: d is invalid.
-		return ""
-	}
-
-	// Nothing before the dot: d is invalid (eg.: .com)
-	if d[:i] == "" {
-		return ""
-	}
-
-	// Get the second dot, the domain
-	i = strings.LastIndexByte(d[:i], '.')
-	if i == -1 {
-		// The second dot not found, so d has only one dot and two fields (eg.: elmasy.com)
-		// d can be a reserved second level domain (eg.: co.uk) or a valid domain name.
-		if IsRestrictedSLD(d) {
-			return ""
-		}
-
-		return d
-	}
-
-	// Nothing before the second dot: d is invalid (eg.: .elmasy.com)
-	if d[:i] == "" {
-		return ""
-	}
-
-	// Check reserved second level domain with the second dot's index.
-	if IsRestrictedSLD(d[i+1:]) {
-		// d is including a reserved second level domain, so we need the third dot.
-		// Get the third dot, the domain before a reserved second level domain (eg.: elmasy.co.uk)
-		i = strings.LastIndexByte(d[:i], '.')
-		if i == -1 {
-			// The third dot not found, so d is a domain (eg.: elmasy.co.uk)
-			return d
-		}
-
-		// Nothing before the third dot, d is invalid
-		if d[:i] == "" {
-			return ""
-		}
-	}
-
-	// The subdomain starts with a dot: d is invalid
-	if d[0] == '.' {
-		return ""
-	}
-
-	return d[i+1:]
+	return publicsuffix.EffectiveTLDPlusOne(d)
 }
 
-// GetSub returns the Subdomain (Third Level Domain) of the given domain d.
-// Returns an empty string if subdomain not found.
-// This function returns a slice of d, does not allocate a new string.
-func GetSub(d string) string {
+// MustGetDomain returns the domain of d (eg.: sub.example.com -> example.com).
+// This function panics if failed to get domain.
+func MustGetDomain(d string) string {
 
-	i := len(d) // The index of the occurence of  the dot
-
-	// Need at least 5 character to get a subdomain (eg.: a.a.a)
-	if i < 5 {
-		return ""
+	v, err := GetDomain(d)
+	if err != nil {
+		panic(err)
 	}
 
-	// Domain names with a dot at the end are valid.
-	// Remove the last dot from the string.
-	if d[i-1] == '.' {
-		d = d[:i-1]
-		i--
+	return v
+}
+
+// GetSub returns the Subdomain of the given domain d.
+// Return an empty string if no subdomain found, or error if d is an invalid domain.
+func GetSub(d string) (string, error) {
+
+	s, err := GetDomain(d)
+	if err != nil {
+		return "", err
 	}
 
-	// Get the first dot, the TLD
-	i = strings.LastIndexByte(d[:i], '.')
-	if i == -1 {
-		// No dot in d, so cant get the subdomain: d is invalid.
-		return ""
+	// Not error, but no subdomain
+	if s == d {
+		return "", nil
 	}
 
-	// Nothing before the dot: d is invalid (eg.: .com)
-	if d[:i] == "" {
-		return ""
+	return d[:strings.Index(d, s)-1], nil
+}
+
+// MustGetSub returns the Subdomain of the given domain d.
+// This function panics if failed to get subdomain.
+func MustGetSub(d string) string {
+
+	s, err := GetDomain(d)
+	if err != nil {
+		panic(err)
 	}
 
-	// Get the second dot, the domain
-	i = strings.LastIndexByte(d[:i], '.')
-	if i == -1 {
-		// No second dot in d, so no subdomain: d is invalid.
-		return ""
+	if s == d {
+		panic("no subdomain in " + d)
 	}
 
-	// Nothing before the second dot: d is invalid (eg.: .elmasy.com)
-	if d[:i] == "" {
-		return ""
-	}
-
-	// Check reserved second level domain with the second dot's index.
-	if IsRestrictedSLD(d[i+1:]) {
-		// d is include a reserved second level domain, so we need the third dot.
-		// Get the third dot, to get the domain before a reserved second level domain (eg.: elmasy.co.uk)
-		i = strings.LastIndexByte(d[:i], '.')
-		if i == -1 {
-			// The third dot not found, so no subdomain: d is invalid
-			return ""
-		}
-	}
-
-	// The subdomain starts with a dot: d is invalid
-	if d[0] == '.' {
-		return ""
-	}
+	i := strings.Index(d, s)
 
 	return d[:i]
-}
-
-// IsWildcard returns whether the given domain d is a wildcard domain.
-func IsWildcard(d string) bool {
-
-	s := GetSub(d)
-
-	return s == "*"
 }

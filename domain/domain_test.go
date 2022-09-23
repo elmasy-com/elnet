@@ -23,13 +23,6 @@ func TestIsValid(t *testing.T) {
 	}
 }
 
-func BenchmarkIsRestrictedSLD(b *testing.B) {
-
-	for i := 0; i < b.N; i++ {
-		IsRestrictedSLD("co.uk")
-	}
-}
-
 func BenchmarkIsValid(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
@@ -42,35 +35,40 @@ func TestGetDomain(t *testing.T) {
 	// 1. element = test string
 	// 2. element = wanted result
 	cases := [][2]string{
-		{"", ""},
-		{".", ""},
-		{"com", ""},
-		{"com.", ""},
-		{".com", ""},
-		{".com.", ""},
-		{"co.uk", ""},
-		{"co.uk.", ""},
-		{".co.uk", ""},
-		{".co.uk.", ""},
-		{"elmasy.com", "elmasy.com"},
-		{"elmasy.com.", "elmasy.com"},
-		{"elmasy.co.uk", "elmasy.co.uk"},
-		{"elmasy.co.uk.", "elmasy.co.uk"},
-		{".elmasy.com", ""},
-		{".elmasy.com.", ""},
-		{".elmasy.co.uk", ""},
-		{".elmasy.co.uk.", ""},
-		{"test.test.elmasy.com", "elmasy.com"},
-		{"test.test.elmasy.com.", "elmasy.com"},
-		{"test.test.elmasy.co.uk", "elmasy.co.uk"},
-		{"test.test.elmasy.co.uk.", "elmasy.co.uk"},
-		{".test.test.elmasy.co.uk.", ""},
+		{"", "error"},
+		{".", "error"},
+		{".cromulent", "error"},
+		{"a.0emm.com", "error"},  // a.0emm.com is a TLD as per publicsuffix
+		{"0emm.com", "0emm.com"}, // 0emm.com is not a TLD, only *.0emm.com
+		{"amazon.co.uk", "amazon.co.uk"},
+		{"books.amazon.co.uk", "amazon.co.uk"},
+		{"amazon.com", "amazon.com"},
+		{"example0.debian.net", "example0.debian.net"},
+		{"example1.debian.org", "debian.org"},
+		{"golang.dev", "golang.dev"},
+		{"golang.net", "golang.net"},
+		{"play.golang.org", "golang.org"},
+		{"gophers.in.space.museum", "in.space.museum"},
+		{"b.c.d.0emm.com", "c.d.0emm.com"},
+		{"there.is.no.such-tld", "no.such-tld"},
+		{"foo.org", "foo.org"},
+		{"foo.co.uk", "foo.co.uk"},
+		{"foo.dyndns.org", "foo.dyndns.org"},
+		{"www.foo.dyndns.org", "foo.dyndns.org"},
+		{"foo.blogspot.co.uk", "foo.blogspot.co.uk"},
+		{"www.foo.blogspot.co.uk", "foo.blogspot.co.uk"},
 	}
 
 	for i := range cases {
-		tld := GetDomain(cases[i][0])
+		tld, err := GetDomain(cases[i][0])
+		if err != nil {
+			if cases[i][1] == "error" {
+				continue
+			}
+			t.Fatalf("Case: %s, want: %s, got: %s\n", cases[i][0], cases[i][1], err)
+		}
 		if tld != cases[i][1] {
-			t.Errorf("Case: %s, want: %s, got: %s\n", cases[i][0], cases[i][1], tld)
+			t.Fatalf("Case: %s, want: %s, got: %s\n", cases[i][0], cases[i][1], tld)
 		}
 	}
 }
@@ -78,7 +76,7 @@ func TestGetDomain(t *testing.T) {
 func BenchmarkGetDomain(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
-		GetDomain("test.elmasy.co.uk.")
+		GetDomain("test.elmasy.com")
 	}
 }
 
@@ -87,35 +85,40 @@ func TestGetSub(t *testing.T) {
 	// 1. element = test string
 	// 2. element = wanted result
 	cases := [][2]string{
-		{"", ""},
-		{".", ""},
-		{"com", ""},
-		{"com.", ""},
-		{".com", ""},
-		{".com.", ""},
-		{"co.uk", ""},
-		{"co.uk.", ""},
-		{".co.uk", ""},
-		{".co.uk.", ""},
-		{"elmasy.com", ""},
-		{"elmasy.com.", ""},
-		{"elmasy.co.uk", ""},
-		{"elmasy.co.uk.", ""},
-		{".elmasy.com", ""},
-		{".elmasy.com.", ""},
-		{".elmasy.co.uk", ""},
-		{".elmasy.co.uk.", ""},
-		{"test.test.elmasy.com", "test.test"},
-		{"test.test.elmasy.com.", "test.test"},
-		{"test.test.elmasy.co.uk", "test.test"},
-		{"test.test.elmasy.co.uk.", "test.test"},
-		{".test.test.elmasy.co.uk.", ""},
+		{"", "error"},
+		{".", "error"},
+		{".cromulent", "error"},
+		{"a.0emm.com", "error"}, // a.0emm.com is a TLD as per publicsuffix
+		{"0emm.com", ""},        // 0emm.com is not a TLD, only *.0emm.com
+		{"amazon.co.uk", ""},
+		{"books.amazon.co.uk", "books"},
+		{"amazon.com", ""},
+		{"example0.debian.net", ""},
+		{"example1.debian.org", "example1"},
+		{"golang.dev", ""},
+		{"golang.net", ""},
+		{"play.golang.org", "play"},
+		{"gophers.in.space.museum", "gophers"},
+		{"b.c.d.0emm.com", "b"},
+		{"there.is.no.such-tld", "there.is"},
+		{"foo.org", ""},
+		{"foo.co.uk", ""},
+		{"foo.dyndns.org", ""},
+		{"www.foo.dyndns.org", "www"},
+		{"foo.blogspot.co.uk", ""},
+		{"www.foo.blogspot.co.uk", "www"},
 	}
 
 	for i := range cases {
-		tld := GetSub(cases[i][0])
+		tld, err := GetSub(cases[i][0])
+		if err != nil {
+			if cases[i][1] == "error" {
+				continue
+			}
+			t.Fatalf("Case: %s, want: %s, got: %s\n", cases[i][0], cases[i][1], err)
+		}
 		if tld != cases[i][1] {
-			t.Errorf("Case: %s, want: %s, got: %s\n", cases[i][0], cases[i][1], tld)
+			t.Fatalf("Case: %s, want: %s, got: %s\n", cases[i][0], cases[i][1], tld)
 		}
 	}
 }
@@ -124,27 +127,5 @@ func BenchmarkGetSub(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		GetSub("test.elmasy.co.uk.")
-	}
-}
-
-func TestIsWildcard(t *testing.T) {
-
-	if !IsWildcard("*.elmasy.com") {
-		t.Errorf("*.elmasy.com should be a wildcard\n")
-	}
-
-	if IsWildcard("test.elmasy.com") {
-		t.Errorf("test.elmasy.com should NOT be a wildcard\n")
-	}
-
-	if IsWildcard(".elmasy.com") {
-		t.Errorf(".elmasy.com should NOT be a wildcard\n")
-	}
-}
-
-func BenchmarkIsWildCard(b *testing.B) {
-
-	for i := 0; i < b.N; i++ {
-		IsWildcard("test.elmasy.com.")
 	}
 }
