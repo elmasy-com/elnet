@@ -93,6 +93,7 @@ func GetDomain(d string) (string, error) {
 
 // MustGetDomain returns the domain of d (eg.: sub.example.com -> example.com).
 // This function panics if failed to get domain.
+// Created to use after IsValid().
 func MustGetDomain(d string) string {
 
 	v, err := GetDomain(d)
@@ -122,6 +123,7 @@ func GetSub(d string) (string, error) {
 
 // MustGetSub returns the Subdomain of the given domain d.
 // This function panics if failed to get subdomain.
+// Created to use after IsValid().
 func MustGetSub(d string) string {
 
 	s, err := GetDomain(d)
