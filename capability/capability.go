@@ -13,7 +13,7 @@ func CapToMask(x uint32) uint64 {
 }
 
 // CapabilityCheck checks the given capability on pid.
-// If pid is -1, checks the current proccess.
+// If pid is -1, checks the current process.
 func CapabilityCheck(cap uint32, pid int) (bool, error) {
 
 	if pid == -1 {
