@@ -10,6 +10,18 @@ func TestIsValid(t *testing.T) {
 		t.Errorf("elmasy.com is invalid\n")
 	}
 
+	if !IsValid("elmasy.com.") {
+		t.Errorf("elmasy.com. is invalid\n")
+	}
+
+	if IsValid(".elmasy.com") {
+		t.Errorf(".elmasy.com is valid\n")
+	}
+
+	if IsValid(".elmasy.com.") {
+		t.Errorf(".elmasy.com. is valid\n")
+	}
+
 	if IsValid("aaaaaa") {
 		t.Errorf("aaaaaa is valid!\n")
 	}
