@@ -88,6 +88,7 @@ func GetDomain(d string) (string, error) {
 	case d == "":
 		return "", fmt.Errorf("domain is empty")
 	case d[len(d)-1] == '.':
+		// Remove the dot from the end.
 		d = d[:len(d)-1]
 	}
 
@@ -121,7 +122,7 @@ func GetSub(d string) (string, error) {
 		return "", nil
 	}
 
-	return d[:strings.Index(d, s)-1], nil
+	return d[:strings.LastIndex(d, s)-1], nil
 }
 
 // MustGetSub returns the Subdomain of the given domain d.
