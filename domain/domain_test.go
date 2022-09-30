@@ -70,6 +70,8 @@ func TestGetDomain(t *testing.T) {
 		{"foo.blogspot.co.uk", "foo.blogspot.co.uk"},
 		{"www.foo.blogspot.co.uk", "foo.blogspot.co.uk"},
 		{"test.com.test.com", "test.com"},
+		{"test.com.", "test.com"},
+		{"test.com.test.com.", "test.com"},
 	}
 
 	for i := range cases {
@@ -121,6 +123,8 @@ func TestGetSub(t *testing.T) {
 		{"foo.blogspot.co.uk", ""},
 		{"www.foo.blogspot.co.uk", "www"},
 		{"test.com.test.com", "test.com"},
+		{"test.com.", ""},
+		{"test.com.test.com.", "test.com"},
 	}
 
 	for i := range cases {

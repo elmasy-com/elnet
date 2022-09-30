@@ -118,11 +118,12 @@ func GetSub(d string) (string, error) {
 	}
 
 	// Not error, but no subdomain
-	if s == d {
+	i := strings.LastIndex(d, s)
+	if i <= 0 {
 		return "", nil
 	}
 
-	return d[:strings.LastIndex(d, s)-1], nil
+	return d[:i-1], nil
 }
 
 // MustGetSub returns the Subdomain of the given domain d.
