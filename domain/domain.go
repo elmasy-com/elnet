@@ -31,15 +31,12 @@ func IsValid(d string) bool {
 	case d[0] == '.':
 		// Mising label, the domain name cant start with a dot.
 		return false
-	case !strings.Contains(d, "."):
-		return false
-	case strings.Contains(d, " "):
-		return false
 	case d == ".":
 		// The root domain name is valid. See golang.org/issue/45715.
 		return true
 	}
 
+	containsDot := false
 	last := byte('.')
 	nonNumeric := false // true once we've seen a letter or hyphen
 	partlen := 0
@@ -62,6 +59,7 @@ func IsValid(d string) bool {
 			partlen++
 			nonNumeric = true
 		case c == '.':
+			containsDot = true
 			// Byte before dot cannot be dot, dash.
 			if last == '.' || last == '-' {
 				return false
@@ -70,10 +68,18 @@ func IsValid(d string) bool {
 				return false
 			}
 			partlen = 0
+		case c == ' ':
+			// Domains cant contains space
+			return false
+
 		}
 		last = c
 	}
 	if last == '-' || partlen > 63 {
+		return false
+	}
+
+	if !containsDot {
 		return false
 	}
 
