@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"fmt"
 	"strings"
 
 	"golang.org/x/net/publicsuffix"
@@ -81,66 +80,113 @@ func IsValid(d string) bool {
 	return nonNumeric
 }
 
-// GetDomain returns the domain of d (eg.: sub.example.com -> example.com).
-func GetDomain(d string) (string, error) {
+func getDotsIndex(d string) []int {
 
-	switch {
-	case d == "":
-		return "", fmt.Errorf("domain is empty")
-	case d[len(d)-1] == '.':
-		// Remove the dot from the end.
+	var indexes []int = nil
+
+	for i := 0; i < len(d); i++ {
+		if d[i] == '.' {
+			indexes = append(indexes, i)
+		}
+	}
+
+	return indexes
+}
+
+// GetTLD returns the TLD of d (eg.: sub.exmaple.com -> com).
+// If d is invalid or cant get the TLD returns an empty string ("").
+func GetTLD(d string) string {
+
+	if d == "" || d == "." || d[0] == '.' {
+		return ""
+	}
+
+	if d[len(d)-1] == '.' {
 		d = d[:len(d)-1]
 	}
 
-	return publicsuffix.EffectiveTLDPlusOne(d)
-}
+	di := getDotsIndex(d)
+	lenDi := len(di)
 
-// MustGetDomain returns the domain of d (eg.: sub.example.com -> example.com).
-// This function panics if failed to get domain.
-// Created to use after IsValid().
-func MustGetDomain(d string) string {
+	// Store the result.
+	// If di == nil, the the result will be d (the for loop will be skipped).
+	result := d
 
-	v, err := GetDomain(d)
-	if err != nil {
-		panic(err)
+	// Iterate in reverse order over the dot indexes
+	for i := lenDi - 1; i >= 0; i-- {
+
+		// dot index + 1 to skip dot in the string
+		v := di[i] + 1
+
+		tld, icann := publicsuffix.PublicSuffix(d[v:])
+
+		// The returned TLD is ICANN managed and differs from d[v:]
+		// This means, that d[v:] was a domain, and PublicSuffix() founded the TLD
+		if icann && tld != d[v:] {
+			break
+		}
+
+		// We got an unmanaged TLD
+		if !icann {
+			// If this was the first iteration, save the resulted TLD, because result contains d.
+			if i == lenDi-1 {
+				result = tld
+			}
+			break
+		}
+
+		result = tld
 	}
 
-	return v
+	return result
 }
 
-// GetSub returns the Subdomain of the given domain d.
-// Return an empty string if no subdomain found, or error if d is an invalid domain.
-func GetSub(d string) (string, error) {
+// GetDomain returns the domain of d (eg.: sub.example.com -> example.com).
+// If d is invalid or cant get the domain returns an empty string ("").
+func GetDomain(d string) string {
 
-	s, err := GetDomain(d)
-	if err != nil {
-		return "", err
+	if d == "" || d == "." || d[0] == '.' {
+		return ""
+	}
+
+	if d[len(d)-1] == '.' {
+		d = d[:len(d)-1]
+	}
+
+	tld := GetTLD(d)
+	switch tld {
+	case "":
+		// Cannot get TLD, d is invalid
+		return ""
+	case d:
+		// s is a TLD
+		return ""
+	}
+
+	if d[len(d)-1] == '.' {
+		d = d[:len(d)-1]
+	}
+
+	// Get the index of the TLD -1 to skip the dot
+	i := len(d) - len(tld) - 1
+
+	return d[1+strings.LastIndex(d[:i], "."):]
+}
+
+// GetSub returns the Subdomain of the given domain d (eg.: eg.: sub.example.com -> example.com).
+// If d is invalid or cant get the subdomain returns an empty string ("").
+func GetSub(d string) string {
+
+	s := GetDomain(d)
+	if s == "" {
+		return ""
 	}
 
 	// Not error, but no subdomain
 	i := strings.LastIndex(d, s)
 	if i <= 0 {
-		return "", nil
+		return ""
 	}
 
-	return d[:i-1], nil
-}
-
-// MustGetSub returns the Subdomain of the given domain d.
-// This function panics if failed to get subdomain.
-// Created to use after IsValid().
-func MustGetSub(d string) string {
-
-	s, err := GetDomain(d)
-	if err != nil {
-		panic(err)
-	}
-
-	if s == d {
-		panic("no subdomain in " + d)
-	}
-
-	i := strings.Index(d, s)
-
-	return d[:i]
+	return d[:i-1]
 }
