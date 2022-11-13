@@ -33,6 +33,10 @@ func TestIsValid(t *testing.T) {
 	if IsValid("") {
 		t.Errorf("empty is valid!\n")
 	}
+
+	if !IsValid(".") {
+		t.Errorf("\".\" is invalid!\n")
+	}
 }
 
 func BenchmarkIsValid(b *testing.B) {
