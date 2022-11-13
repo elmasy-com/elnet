@@ -37,6 +37,14 @@ func TestIsValid(t *testing.T) {
 	if !IsValid(".") {
 		t.Errorf("\".\" is invalid!\n")
 	}
+
+	if IsValid("a a") {
+		t.Errorf("\"a a\" is valid!\n")
+	}
+
+	if IsValid("a=a") {
+		t.Errorf("\"a=a\" is valid!\n")
+	}
 }
 
 func BenchmarkIsValid(b *testing.B) {
