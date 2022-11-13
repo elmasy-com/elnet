@@ -28,12 +28,12 @@ func IsValid(d string) bool {
 		// So our _effective_ maximum is 253, but 254 is not rejected if the last
 		// character is a dot.
 		return false
-	case d[0] == '.':
-		// Mising label, the domain name cant start with a dot.
-		return false
 	case d == ".":
 		// The root domain name is valid. See golang.org/issue/45715.
 		return true
+	case d[0] == '.':
+		// Mising label, the domain name cant start with a dot.
+		return false
 	}
 
 	containsDot := false
