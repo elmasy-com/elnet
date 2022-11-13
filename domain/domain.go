@@ -68,10 +68,6 @@ func IsValid(d string) bool {
 				return false
 			}
 			partlen = 0
-		case c == ' ':
-			// Domains cant contains space
-			return false
-
 		}
 		last = c
 	}
