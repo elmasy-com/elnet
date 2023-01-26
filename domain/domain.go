@@ -1,9 +1,22 @@
 package domain
 
 import (
+	"bytes"
+	"errors"
+	"fmt"
 	"strings"
 
 	"golang.org/x/net/publicsuffix"
+)
+
+type Parts struct {
+	TLD    string // Top level domain (eg.: "com"). Cant be empty.
+	Domain string // Domain part (eg.: example"). Cant be empty.
+	Sub    string // Subdomain part (eg.: "www"). Can be empty.
+}
+
+var (
+	ErrInvalidDomain = errors.New("invalid domain")
 )
 
 // IsValid checks if a ByteSeq is a presentation-format domain name
@@ -29,8 +42,9 @@ func IsValid(d string) bool {
 		// character is a dot.
 		return false
 	case d == ".":
-		// The root domain name is valid. See golang.org/issue/45715.
-		return true
+		// The root domain name is technically valid. See golang.org/issue/45715.
+		// But not for this package
+		return false
 	case d[0] == '.':
 		// Mising label, the domain name cant start with a dot.
 		return false
@@ -82,6 +96,20 @@ func IsValid(d string) bool {
 	return nonNumeric
 }
 
+// Clean removes the trailing dot
+// returns a lower cased version of d.
+func Clean(d string) string {
+
+	// Remove the trailing dot.
+	if d[len(d)-1] == '.' {
+		d = d[:len(d)-1]
+	}
+
+	return strings.ToLower(d)
+}
+
+// Returns the dot indexes.
+// If no dot found, returns nil
 func getDotsIndex(d string) []int {
 
 	var indexes []int = nil
@@ -93,6 +121,108 @@ func getDotsIndex(d string) []int {
 	}
 
 	return indexes
+}
+
+// Returns the dot indexes from left to front.
+// If no dot found, returns nil
+func getDotsIndexRev(d string) []int {
+
+	var indexes []int = nil
+
+	for i := len(d) - 1; i >= 0; i-- {
+		if d[i] == '.' {
+			indexes = append(indexes, i)
+		}
+	}
+
+	return indexes
+}
+
+// getPartsIndex returns the dot index before the TLD and aftre the subdomain,
+// allows an effective dissect of the FQDN.
+// If d is a TLD, then domain will be -1.
+func getPartsIndex(d string) (tld int, domain int) {
+
+	// Default
+	tld = 0
+	domain = -1
+
+	di := getDotsIndexRev(d)
+
+	// Iterate in reverse order over the dot indexes
+	for i := range di {
+
+		// dot index + 1 to skip dot in the string
+
+		tldStr, icann := publicsuffix.PublicSuffix(d[di[i]+1:])
+
+		switch {
+
+		case icann && bytes.Equal([]byte(tldStr), []byte(d[di[i]+1:])):
+			// ICANN managed TLD found, continue to the next
+			tld = di[i]
+			if i == 0 {
+				domain = 0
+			}
+		case icann && !bytes.Equal([]byte(tldStr), []byte(d[di[i]+1:])):
+			// The returned TLD is ICANN managed and differs from d[di[i]+1:]
+			// This means, that d[di[i]+1:] was a domain, and PublicSuffix() founded the TLD
+			return di[i-1], di[i]
+
+		case !icann && bytes.Equal([]byte(tldStr), []byte(d[di[i]+1:])) && i == 0:
+			// Non existent TLD found in the first round (eg.: there.is.no.SUCH-TLD)
+
+			if len(di) == 1 {
+				// Only one dot present -> domain.INVALID-TLD
+				//                        0     di[0]
+				return di[0], 0
+			}
+
+			// Multiple dot presents -> sub.domain.INVALID-TLD
+			//                           di[1]  di[0]
+			return di[0], di[1]
+
+		case !icann && bytes.Equal([]byte(tldStr), []byte(d[di[i]+1:])) && i > 0:
+
+			// ICANN managed TLD with privately managed  domain
+			//  -> example.debian.net
+			//         di[i] di[i-1]
+			return di[i-1], di[i]
+		}
+
+	}
+
+	return tld, domain
+}
+
+// GetParts validate d with IsValid, Clean() and returns the parts of d.
+// If d is invalid, returns ErrInvalidDomain.
+// Will panic if failed to get parts after validation.
+func GetParts(d string) (*Parts, error) {
+
+	if !IsValid(d) {
+		return nil, ErrInvalidDomain
+	}
+
+	d = Clean(d)
+
+	tld, dom := getPartsIndex(d)
+	if tld < 1 || dom < 0 {
+		panic(fmt.Sprintf("getPartsIndex() failed after validation: %s", d))
+	}
+
+	p := new(Parts)
+
+	p.TLD = d[tld+1:]
+
+	if dom == 0 {
+		p.Domain = d[0:tld]
+	} else {
+		p.Domain = d[dom+1 : tld]
+		p.Sub = d[:dom]
+	}
+
+	return p, nil
 }
 
 // GetTLD returns the TLD of d (eg.: sub.exmaple.com -> com).
