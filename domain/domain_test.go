@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -237,6 +238,11 @@ func TestGetParts(t *testing.T) {
 			t.Fatalf("FAIL: Domain failed with %s, want=%s get=%s\n", cases[i][0], cases[i][2], parts.Domain)
 		case parts.Sub != cases[i][3]:
 			t.Fatalf("FAIL: Sub failed with %s, want=%s get=%s\n", cases[i][0], cases[i][3], parts.Sub)
+
+		case parts.String() != cases[i][0]:
+			t.Fatalf("FAIL: String() failed with %s: want=%s got=%s\n", cases[i][0], parts, cases[i][0])
+		case parts.GetDomain() != fmt.Sprintf("%s.%s", cases[i][2], cases[i][1]):
+			t.Fatalf("FAIL: GetDomain() failed with %s: want=%s got=%s\n", cases[i][0], parts.GetDomain(), fmt.Sprintf("%s.%s", cases[i][2], cases[i][1]))
 
 		default:
 			// No error

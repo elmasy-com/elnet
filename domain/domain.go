@@ -19,6 +19,24 @@ var (
 	ErrInvalidDomain = errors.New("invalid domain")
 )
 
+// GetDomain returns the domain (eg.: "example.com").
+func (p *Parts) GetDomain() string {
+	return p.Domain + "." + p.TLD
+}
+
+func (p Parts) String() string {
+
+	v := ""
+
+	if p.Sub != "" {
+		v += p.Sub + "."
+	}
+
+	v += p.Domain + "." + p.TLD
+
+	return v
+}
+
 // IsValid checks if a ByteSeq is a presentation-format domain name
 // (currently restricted to hostname-compatible "preferred name" LDH labels and
 // SRV-like "underscore labels".
