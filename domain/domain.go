@@ -255,40 +255,28 @@ func GetTLD(d string) string {
 		d = d[:len(d)-1]
 	}
 
-	di := getDotsIndex(d)
-	lenDi := len(di)
+	tld := d
+	icann := false
 
-	// Store the result.
-	// If di == nil, the the result will be d (the for loop will be skipped).
-	result := d
-
-	// Iterate in reverse order over the dot indexes
-	for i := lenDi - 1; i >= 0; i-- {
-
-		// dot index + 1 to skip dot in the string
-		v := di[i] + 1
-
-		tld, icann := publicsuffix.PublicSuffix(d[v:])
-
-		// The returned TLD is ICANN managed and differs from d[v:]
-		// This means, that d[v:] was a domain, and PublicSuffix() founded the TLD
-		if icann && tld != d[v:] {
+	for {
+		tld, icann = publicsuffix.PublicSuffix(tld)
+		// Break if ICANN managed
+		if icann {
 			break
 		}
 
-		// We got an unmanaged TLD
-		if !icann {
-			// If this was the first iteration, save the resulted TLD, because result contains d.
-			if i == lenDi-1 {
-				result = tld
-			}
+		dot := strings.IndexByte(tld, '.')
+
+		// No dot means the TLD (eg.: "com")
+		if dot == -1 {
 			break
 		}
 
-		result = tld
+		// Get the next part of the domain
+		tld = tld[dot+1:]
 	}
 
-	return result
+	return tld
 }
 
 // GetDomain returns the domain of d (eg.: sub.example.com -> example.com).
@@ -311,10 +299,6 @@ func GetDomain(d string) string {
 	case d:
 		// s is a TLD
 		return ""
-	}
-
-	if d[len(d)-1] == '.' {
-		d = d[:len(d)-1]
 	}
 
 	// Get the index of the TLD -1 to skip the dot

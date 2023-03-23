@@ -307,7 +307,10 @@ func TestGetTLD(t *testing.T) {
 func BenchmarkGetTLD(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
-		GetTLD("test.example.co.uk.")
+		tld := GetTLD("test.s3.dualstack.ap-northeast-2.amazonaws.com")
+		if tld != "com" {
+			b.Fatalf("Invalid TLD: %s\n", tld)
+		}
 	}
 }
 
