@@ -141,8 +141,8 @@ func getDotsIndex(d string) []int {
 	return indexes
 }
 
-// Returns the dot indexes from left to front.
-// If no dot found, returns nil
+// Returns the dot indexes from right to front.
+// If no dot found, returns nil.
 func getDotsIndexRev(d string) []int {
 
 	var indexes []int = nil
