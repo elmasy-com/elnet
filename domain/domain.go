@@ -94,6 +94,61 @@ func IsValid(d string) bool {
 	return nonNumeric
 }
 
+// IsValidSLD returns whether d is valid Second Level Domain.
+//
+// Domain d can be up to 63 character long, can include a-z, A-Z, 0-9 and "-".
+// The string must not starts and ends with a hyphen ("-") and two consecutive hyphen is not allowed.
+func IsValidSLD(d string) bool {
+
+	// Source: https://www.saveonhosting.com/scripts/index.php?rp=/knowledgebase/52/What-are-the-valid-characters-for-a-domain-name-and-how-long-can-a-domain-name-be.html
+
+	l := len(d)
+
+	switch {
+	case l == 0 || l > 63:
+		// See RFC 1035, RFC 3696.
+		// Presentation format has dots before every label except the first, and the
+		// terminal empty label is optional here because we assume fully-qualified
+		// (absolute) input. We must therefore reserve space for the first and last
+		// labels' length octets in wire format, where they are necessary and the
+		// maximum total length is 255.
+		// So our _effective_ maximum is 253, but 254 is not rejected if the last
+		// character is a dot.
+		return false
+	case d[0] == '-' || d[l-1] == '-':
+		return false
+	case d == ".":
+		// The root domain name is technically valid. See golang.org/issue/45715.
+		// But not for this package
+		return false
+	}
+
+	// Indicates, that the last character was a hyphen
+	lastHypen := false
+
+	for i := 0; i < len(d); i++ {
+		c := d[i]
+		switch {
+		default:
+			return false
+		case 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z':
+			continue
+		case '0' <= c && c <= '9':
+			// fine
+			continue
+		case c == '-':
+			// Byte before dash cannot be dot.
+			if lastHypen {
+				return false
+			}
+
+			lastHypen = true
+		}
+	}
+
+	return true
+}
+
 // Clean removes the trailing dot and returns a lower cased version of d.
 func Clean(d string) string {
 

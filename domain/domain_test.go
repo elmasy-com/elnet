@@ -54,6 +54,71 @@ func BenchmarkIsValid(b *testing.B) {
 	}
 }
 
+func TestIsValidDLS(t *testing.T) {
+
+	if !IsValidSLD("elmasy") {
+		t.Errorf("elmasy is invalid\n")
+	}
+
+	if IsValidSLD("elmasy.") {
+		t.Errorf("elmasy. is valid\n")
+	}
+
+	if IsValidSLD(".elmasy") {
+		t.Errorf(".elmasy is valid\n")
+	}
+
+	if IsValidSLD(".elmasy.com.") {
+		t.Errorf(".elmasy.com. is valid\n")
+	}
+
+	if !IsValidSLD("aaaaaa") {
+		t.Errorf("aaaaaa is invalid!\n")
+	}
+
+	if IsValidSLD("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.elmasy.com") {
+		t.Errorf("long aaaaaa is valid\n")
+	}
+
+	if IsValidSLD("") {
+		t.Errorf("empty is valid!\n")
+	}
+
+	if IsValidSLD(".") {
+		t.Errorf("\".\" is valid!\n")
+	}
+
+	if IsValidSLD("a a") {
+		t.Errorf("\"a a\" is valid!\n")
+	}
+
+	if IsValidSLD("a=a") {
+		t.Errorf("\"a=a\" is valid!\n")
+	}
+
+	if !IsValidSLD("a-a") {
+		t.Errorf("\"a_a\" is invalid!\n")
+	}
+
+	if IsValidSLD("-aa") {
+		t.Errorf("\"_aa\" is valid!\n")
+	}
+
+	if IsValidSLD("aa-") {
+		t.Errorf("\"aa_\" is valid!\n")
+	}
+
+	if IsValidSLD("a--a") {
+		t.Errorf("\"a__a\" is valid!\n")
+	}
+}
+
+func BenchmarkIsValidSLD(b *testing.B) {
+
+	for i := 0; i < b.N; i++ {
+		IsValidSLD("test.elmasy.com.")
+	}
+}
 func TestGetParts(t *testing.T) {
 
 	// 0. element = test domain
