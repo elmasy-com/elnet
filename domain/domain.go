@@ -1,9 +1,7 @@
 package domain
 
 import (
-	"bytes"
 	"errors"
-	"fmt"
 	"strings"
 
 	"golang.org/x/net/publicsuffix"
@@ -18,24 +16,6 @@ type Parts struct {
 var (
 	ErrInvalidDomain = errors.New("invalid domain")
 )
-
-// GetDomain returns the domain (eg.: "example.com").
-func (p *Parts) GetDomain() string {
-	return p.Domain + "." + p.TLD
-}
-
-func (p Parts) String() string {
-
-	v := ""
-
-	if p.Sub != "" {
-		v += p.Sub + "."
-	}
-
-	v += p.Domain + "." + p.TLD
-
-	return v
-}
 
 // IsValid checks if a ByteSeq is a presentation-format domain name
 // (currently restricted to hostname-compatible "preferred name" LDH labels and
@@ -114,8 +94,7 @@ func IsValid(d string) bool {
 	return nonNumeric
 }
 
-// Clean removes the trailing dot
-// returns a lower cased version of d.
+// Clean removes the trailing dot and returns a lower cased version of d.
 func Clean(d string) string {
 
 	// Remove the trailing dot.
@@ -126,125 +105,49 @@ func Clean(d string) string {
 	return strings.ToLower(d)
 }
 
-// Returns the dot indexes.
-// If no dot found, returns nil
-func getDotsIndex(d string) []int {
+// GetParts returns the parts of d.
+//
+// If d is just a TLD, returns a struct with empty Domain (eg.: "com" -> &Result{Sub: "", Domain: "", TLD: "com"}).
+//
+// If d does not contains subdomain, than Sub will be empty (eg.: "example.com" -> &Result{Sub: "", Domain: "example", TLD: "com"}).
+//
+// Returns nil if d is empty, a dot (".") or starts with a dot (eg.: ".example.com").
+//
+// NOTE: This function does not validate and Clean() the given domain d. It is recommended to use IsValid() and Clean() before this function.
+func GetParts(d string) *Parts {
 
-	var indexes []int = nil
+	if d == "" || d == "." || d[0] == '.' {
+		return nil
+	}
 
-	for i := 0; i < len(d); i++ {
+	if d[len(d)-1] == '.' {
+		d = d[:len(d)-1]
+	}
+
+	tldIndex := GetTLDIndex(d)
+	if tldIndex <= 0 {
+		return &Parts{TLD: d}
+	}
+
+	tldIndex -= 1
+	domIndex := 0
+
+	for i := 0; i < tldIndex; i++ {
 		if d[i] == '.' {
-			indexes = append(indexes, i)
+			domIndex = i
 		}
 	}
 
-	return indexes
+	if domIndex == 0 {
+		return &Parts{Sub: "", Domain: d[0:tldIndex], TLD: d[tldIndex+1:]}
+	}
+
+	return &Parts{Sub: d[0:domIndex], Domain: d[domIndex+1 : tldIndex], TLD: d[tldIndex+1:]}
 }
 
-// Returns the dot indexes from right to front.
-// If no dot found, returns nil.
-func getDotsIndexRev(d string) []int {
-
-	var indexes []int = nil
-
-	for i := len(d) - 1; i >= 0; i-- {
-		if d[i] == '.' {
-			indexes = append(indexes, i)
-		}
-	}
-
-	return indexes
-}
-
-// getPartsIndex returns the dot index before the TLD and aftre the subdomain,
-// allows an effective dissect of the FQDN.
-// If d is a TLD, then domain will be -1.
-func getPartsIndex(d string) (tld int, domain int) {
-
-	// Default
-	tld = 0
-	domain = -1
-
-	di := getDotsIndexRev(d)
-
-	// Iterate in reverse order over the dot indexes
-	for i := range di {
-
-		// dot index + 1 to skip dot in the string
-
-		tldStr, icann := publicsuffix.PublicSuffix(d[di[i]+1:])
-
-		switch {
-
-		case icann && bytes.Equal([]byte(tldStr), []byte(d[di[i]+1:])):
-			// ICANN managed TLD found, continue to the next
-			tld = di[i]
-			if i == 0 {
-				domain = 0
-			}
-		case icann && !bytes.Equal([]byte(tldStr), []byte(d[di[i]+1:])):
-			// The returned TLD is ICANN managed and differs from d[di[i]+1:]
-			// This means, that d[di[i]+1:] was a domain, and PublicSuffix() founded the TLD
-			return di[i-1], di[i]
-
-		case !icann && bytes.Equal([]byte(tldStr), []byte(d[di[i]+1:])) && i == 0:
-			// Non existent TLD found in the first round (eg.: there.is.no.SUCH-TLD)
-
-			if len(di) == 1 {
-				// Only one dot present -> domain.INVALID-TLD
-				//                        0     di[0]
-				return di[0], 0
-			}
-
-			// Multiple dot presents -> sub.domain.INVALID-TLD
-			//                           di[1]  di[0]
-			return di[0], di[1]
-
-		case !icann && bytes.Equal([]byte(tldStr), []byte(d[di[i]+1:])) && i > 0:
-
-			// ICANN managed TLD with privately managed  domain
-			//  -> example.debian.net
-			//         di[i] di[i-1]
-			return di[i-1], di[i]
-		}
-
-	}
-
-	return tld, domain
-}
-
-// GetParts validate d with IsValid, Clean() and returns the parts of d.
-// If d is invalid, returns ErrInvalidDomain.
-// Will panic if failed to get parts after validation.
-func GetParts(d string) (*Parts, error) {
-
-	if !IsValid(d) {
-		return nil, ErrInvalidDomain
-	}
-
-	d = Clean(d)
-
-	tld, dom := getPartsIndex(d)
-	if tld < 1 || dom < 0 {
-		panic(fmt.Sprintf("getPartsIndex() failed after validation: %s", d))
-	}
-
-	p := new(Parts)
-
-	p.TLD = d[tld+1:]
-
-	if dom == 0 {
-		p.Domain = d[0:tld]
-	} else {
-		p.Domain = d[dom+1 : tld]
-		p.Sub = d[:dom]
-	}
-
-	return p, nil
-}
-
-// GetTLD returns the TLD of d (eg.: sub.exmaple.com -> com).
-// If d is invalid or cant get the TLD returns an empty string ("").
+// GetTLD returns the Top Level Domain of d (eg.: sub.exmaple.com -> com).
+//
+// Returns an empty string ("") if d is empty, a dot (".") or starts with a dot (eg.: ".example.com").
 func GetTLD(d string) string {
 
 	if d == "" || d == "." || d[0] == '.' {
@@ -279,8 +182,28 @@ func GetTLD(d string) string {
 	return tld
 }
 
+// GetTLDIndex returns the index of the Top Level Domain in d (eg.: sub.example.com -> 12).
+//
+// Returns 0 if d is a TLD.
+//
+// Returns -1 if d is empty, a dot (".") or starts with a dot (eg.: ".example.com").
+func GetTLDIndex(d string) int {
+
+	if d == "" || d == "." || d[0] == '.' {
+		return -1
+	}
+
+	if d[len(d)-1] == '.' {
+		d = d[:len(d)-1]
+	}
+
+	//return strings.LastIndex(d, GetTLD(d))
+	return len(d) - len(GetTLD(d))
+}
+
 // GetDomain returns the domain of d (eg.: sub.example.com -> example.com).
-// If d is invalid or cant get the domain returns an empty string ("").
+//
+// Returns an empty string ("") if d is empty, a dot ("."), starts with a dot (eg.: ".example.com") or d is just a TLD.
 func GetDomain(d string) string {
 
 	if d == "" || d == "." || d[0] == '.' {
@@ -292,12 +215,8 @@ func GetDomain(d string) string {
 	}
 
 	tld := GetTLD(d)
-	switch tld {
-	case "":
-		// Cannot get TLD, d is invalid
-		return ""
-	case d:
-		// s is a TLD
+
+	if tld == "" || tld == d {
 		return ""
 	}
 
@@ -305,6 +224,27 @@ func GetDomain(d string) string {
 	i := len(d) - len(tld) - 1
 
 	return d[1+strings.LastIndex(d[:i], "."):]
+}
+
+// GetDomainIndex returns the index of the domain of d (eg.: sub.example.com -> 4).
+//
+// Returns -1 if d is empty, a dot ("."), starts with a dot (eg.: ".example.com") or d is just a TLD.
+func GetDomainIndex(d string) int {
+
+	if d == "" || d == "." || d[0] == '.' {
+		return -1
+	}
+
+	if d[len(d)-1] == '.' {
+		d = d[:len(d)-1]
+	}
+
+	dom := GetDomain(d)
+	if dom == "" {
+		return -1
+	}
+
+	return len(d) - len(dom)
 }
 
 // GetSub returns the Subdomain of the given domain d (eg.: eg.: sub.example.com -> example.com).
