@@ -12,9 +12,6 @@ var charSet = []byte("abcdefghijklmnopqrstuvwxyz0123456789")
 // There is no room to fuzz the first part, have to check every possible characters to make sure its a wildcard domain.
 func wildcardBruteforceOneChar(parts []string) (bool, error) {
 
-	total := 36
-	found := 0
-
 	for i := range charSet {
 		parts[0] = string(charSet[i])
 		v := strings.Join(parts, ".")
@@ -24,12 +21,13 @@ func wildcardBruteforceOneChar(parts []string) (bool, error) {
 			return false, err
 		}
 
-		if r {
-			found++
+		// Return on the first false
+		if !r {
+			return false, nil
 		}
 	}
 
-	return found == total, nil
+	return true, nil
 }
 
 // IsWildcard check if name is a wildcard domain.
@@ -57,10 +55,9 @@ func IsWildcard(name string) (bool, error) {
 		partSize = 63
 	}
 
-	found := 0
 	maxCheck := 0
 
-	// The total number of check based on the max length.
+	// The total number of checks based on the max length.
 	switch {
 	case partSize > 31:
 		maxCheck = 3
@@ -82,10 +79,11 @@ func IsWildcard(name string) (bool, error) {
 			return false, err
 		}
 
-		if r {
-			found++
+		// Return on the first false
+		if !r {
+			return false, nil
 		}
 	}
 
-	return found == maxCheck, nil
+	return true, nil
 }
