@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"errors"
 	"strings"
 
 	"golang.org/x/net/publicsuffix"
@@ -12,10 +11,6 @@ type Parts struct {
 	Domain string // Domain part (eg.: example"). Cant be empty.
 	Sub    string // Subdomain part (eg.: "www"). Can be empty.
 }
-
-var (
-	ErrInvalidDomain = errors.New("invalid domain")
-)
 
 // IsValid checks if a ByteSeq is a presentation-format domain name
 // (currently restricted to hostname-compatible "preferred name" LDH labels and
@@ -116,6 +111,7 @@ func IsValidSLD(d string) bool {
 		// character is a dot.
 		return false
 	case d[0] == '-' || d[l-1] == '-':
+		// Cant starts and ends with "-"
 		return false
 	case d == ".":
 		// The root domain name is technically valid. See golang.org/issue/45715.
@@ -137,7 +133,7 @@ func IsValidSLD(d string) bool {
 			// fine
 			continue
 		case c == '-':
-			// Byte before dash cannot be dot.
+			// Two consecutive hyphen is not allowed (eg.: "a--a")
 			if lastHypen {
 				return false
 			}
