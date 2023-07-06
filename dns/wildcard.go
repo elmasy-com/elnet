@@ -16,7 +16,7 @@ func wildcardBruteforceOneChar(parts []string) (bool, error) {
 		parts[0] = string(charSet[i])
 		v := strings.Join(parts, ".")
 
-		r, err := IsSetAny(v)
+		r, err := IsExists(v)
 		if err != nil {
 			return false, err
 		}
@@ -74,7 +74,7 @@ func IsWildcard(name string) (bool, error) {
 		parts[0] = slitu.RandomString(charSet, partSize)
 		v := strings.Join(parts, ".")
 
-		r, err := IsSetAny(v)
+		r, err := IsExists(v)
 		if err != nil {
 			return false, err
 		}

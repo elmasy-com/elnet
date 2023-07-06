@@ -102,11 +102,11 @@ func IsSet(name string, t uint16) (bool, error) {
 	}
 }
 
-// IsSetAny checks whether a record with type A, AAAA, TXT, CNAME, MX, NS or SRV is set for name.
+// IsExists checks whether a record with type A, AAAA, TXT, CNAME, MX, NS or SRV is set for name.
 // NXDOMAIN is not an error here, because it means "not found".
 //
-// If found a set type, this function returns without trying for the other types.
-func IsSetAny(name string) (bool, error) {
+// If found a setted record, this function returns without trying for the other types.
+func IsExists(name string) (bool, error) {
 
 	// A
 	setA, err := IsSetA(name)
