@@ -13,6 +13,10 @@ type MX struct {
 	Exchange   string // Server's hostname
 }
 
+func (m MX) String() string {
+	return fmt.Sprintf("%d %s", m.Preference, m.Exchange)
+}
+
 // QueryMX returns a slice of MX struct.
 // Returns nil in case of error.
 func QueryMX(name string) ([]MX, error) {

@@ -13,6 +13,10 @@ type SRV struct {
 	Target   string
 }
 
+func (s SRV) String() string {
+	return fmt.Sprintf("%d %d %d %s", s.Priority, s.Weight, s.Port, s.Target)
+}
+
 var TypeSRV uint16 = 33
 
 // QuerySRV returns the answer as a slice os SRV.

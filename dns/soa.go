@@ -19,6 +19,10 @@ type SOA struct {
 	MinTTL  int
 }
 
+func (s SOA) String() string {
+	return fmt.Sprintf("%s %s %d %d %d %d %d", s.Mname, s.Rname, s.Serial, s.Refresh, s.Retry, s.Expire, s.MinTTL)
+}
+
 // QuerySOA returns the answer as a SOA struct.
 // The returned *SOA **cant be nil** if error is nil.
 // Returns nil in case of error.
