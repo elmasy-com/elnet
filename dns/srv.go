@@ -16,7 +16,6 @@ type SRV struct {
 var TypeSRV uint16 = 33
 
 // QuerySRV returns the answer as a slice os SRV.
-// The length of the returned slice can be 0 if no record matching for type SRV, but record with other type exist.
 // Returns nil in case of error.
 func QuerySRV(name string) ([]SRV, error) {
 
@@ -38,6 +37,29 @@ func QuerySRV(name string) ([]SRV, error) {
 	}
 
 	return r, err
+}
+
+// QuerySRVRetry query for SRV record and retry for n times if an error occured.
+func QuerySRVRetry(name string, n int) ([]SRV, error) {
+
+	if n < 1 {
+		return nil, fmt.Errorf("invalid number of retry: %d", n)
+	}
+
+	var (
+		r   []SRV = nil
+		err error
+	)
+
+	for i := 0; i < n; i++ {
+
+		r, err = QuerySRV(name)
+		if err == nil {
+			return r, nil
+		}
+	}
+
+	return nil, err
 }
 
 // IsSetSRV checks whether an SRV type record set for name.

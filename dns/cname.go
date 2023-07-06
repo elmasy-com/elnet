@@ -9,7 +9,6 @@ import (
 var TypeCNAME uint16 = 5
 
 // QueryCNAME returns the answer as a string slice.
-// The length of the returned slice can be 0 if no record matching for type CNAME, but record with other type exist.
 // Returns nil in case of error.
 func QueryCNAME(name string) ([]string, error) {
 
@@ -31,6 +30,29 @@ func QueryCNAME(name string) ([]string, error) {
 	}
 
 	return r, nil
+}
+
+// QueryCNAMERetry query for CNAME record and retry for n times if an error occured.
+func QueryCNAMERetry(name string, n int) ([]string, error) {
+
+	if n < 1 {
+		return nil, fmt.Errorf("invalid number of retry: %d", n)
+	}
+
+	var (
+		r   []string = nil
+		err error
+	)
+
+	for i := 0; i < n; i++ {
+
+		r, err = QueryCNAME(name)
+		if err == nil {
+			return r, nil
+		}
+	}
+
+	return nil, err
 }
 
 // IsSetCNAME checks whether an CNAME type record set for name.

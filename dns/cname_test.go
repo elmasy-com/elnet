@@ -11,3 +11,13 @@ func TestQueryCNAME(t *testing.T) {
 
 	t.Logf("%#v\n", r)
 }
+
+func TestQueryCNAMERetry(t *testing.T) {
+
+	r, err := QueryCNAMERetry("elmasy.com", 3)
+	if err != nil {
+		t.Fatalf("TestQueryCNAMERetry failed: %s\n", err)
+	}
+
+	t.Logf("%#v\n", r)
+}

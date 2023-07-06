@@ -11,3 +11,13 @@ func TestQueryNS(t *testing.T) {
 
 	t.Logf("%#v\n", r)
 }
+
+func TestQueryNSRetry(t *testing.T) {
+
+	r, err := QueryNSRetry("elmasy.com", 3)
+	if err != nil {
+		t.Fatalf("TestQueryNSRetry failed: %s\n", err)
+	}
+
+	t.Logf("%#v\n", r)
+}

@@ -9,7 +9,6 @@ import (
 var TypeTXT uint16 = 16
 
 // QueryTXT returns the answer as a string slice.
-// The length of the returned slice can be 0 if no record matching for type TXT, but record with other type exist.
 // Returns nil in case of error.
 func QueryTXT(name string) ([]string, error) {
 
@@ -31,6 +30,29 @@ func QueryTXT(name string) ([]string, error) {
 	}
 
 	return r, nil
+}
+
+// QueryTXTRetry query for TXT record and retry for n times if an error occured.
+func QueryTXTRetry(name string, n int) ([]string, error) {
+
+	if n < 1 {
+		return nil, fmt.Errorf("invalid number of retry: %d", n)
+	}
+
+	var (
+		r   []string = nil
+		err error
+	)
+
+	for i := 0; i < n; i++ {
+
+		r, err = QueryTXT(name)
+		if err == nil {
+			return r, nil
+		}
+	}
+
+	return nil, err
 }
 
 // IsSetTXT checks whether an TXT type record set for name.

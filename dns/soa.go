@@ -42,4 +42,27 @@ func QuerySOA(name string) (*SOA, error) {
 	return &SOA{Mname: v.Ns, Rname: v.Mbox, Serial: int(v.Serial), Refresh: int(v.Refresh), Retry: int(v.Retry), Expire: int(v.Expire), MinTTL: int(v.Minttl)}, err
 }
 
+// QuerySOARetry query for SOA record and retry for n times if an error occured.
+func QuerySOARetry(name string, n int) (*SOA, error) {
+
+	if n < 1 {
+		return nil, fmt.Errorf("invalid number of retry: %d", n)
+	}
+
+	var (
+		r   *SOA = nil
+		err error
+	)
+
+	for i := 0; i < n; i++ {
+
+		r, err = QuerySOA(name)
+		if err == nil {
+			return r, nil
+		}
+	}
+
+	return nil, err
+}
+
 // TODO: Decide if the domain is registered based on the SOA record/root server

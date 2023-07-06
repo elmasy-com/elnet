@@ -11,3 +11,13 @@ func TestQueryMX(t *testing.T) {
 
 	t.Logf("%#v\n", r)
 }
+
+func TestQueryMXRetry(t *testing.T) {
+
+	r, err := QueryMXRetry("elmasy.com", 3)
+	if err != nil {
+		t.Fatalf("TestQueryMXRetry failed: %s\n", err)
+	}
+
+	t.Logf("%#v\n", r)
+}

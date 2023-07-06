@@ -42,6 +42,16 @@ func TestQueryALenZero(t *testing.T) {
 	}
 }
 
+func TestQueryARetry(t *testing.T) {
+
+	r, err := QueryARetry("elmasy.com", 3)
+	if err != nil {
+		t.Fatalf("TestQueryARetry failed: %s\n", err)
+	}
+
+	t.Logf("%#v\n", r)
+}
+
 func TestIsSetA(t *testing.T) {
 
 	r, err := IsSetA("elmasy.com")

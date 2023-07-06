@@ -10,8 +10,9 @@ import (
 var TypeA uint16 = 1
 
 // QueryA returns a slice of net.IP.
-// The length of the returned slice can be 0 if no record matching for type A, but record with other type exist.
 // The answer slice will be nil in case of error.
+//
+// The CNAME record is ignored.
 func QueryA(name string) ([]net.IP, error) {
 
 	a, err := Query(name, TypeA)
@@ -35,6 +36,29 @@ func QueryA(name string) ([]net.IP, error) {
 	}
 
 	return r, nil
+}
+
+// QueryARetry query for A record and retry for n times if an error occured.
+func QueryARetry(name string, n int) ([]net.IP, error) {
+
+	if n < 1 {
+		return nil, fmt.Errorf("invalid number of retry: %d", n)
+	}
+
+	var (
+		r   []net.IP = nil
+		err error
+	)
+
+	for i := 0; i < n; i++ {
+
+		r, err = QueryA(name)
+		if err == nil {
+			return r, nil
+		}
+	}
+
+	return nil, err
 }
 
 // IsSetA checks whether an A type record set for name.
