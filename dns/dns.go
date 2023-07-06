@@ -1,7 +1,6 @@
 package dns
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 
@@ -13,14 +12,6 @@ import (
 //
 // Set in the init() function to read resolv.conf or use Cloudflare + Google.
 var Conf *dns.ClientConfig
-
-var (
-	ErrFormat         = errors.New("FORMERR")  // FORMERR
-	ErrServerFailure  = errors.New("SERVFAIL") // SERVFAIL
-	ErrName           = errors.New("NXDOMAIN") // NXDOMAIN
-	ErrNotImplemented = errors.New("NOTIMP")   // NOTIMP
-	ErrRefused        = errors.New("REFUSED")  // REFUSED
-)
 
 // Initialize Conf.
 // If reading resolv.conf failed, use Cloudflare + Google
@@ -79,22 +70,11 @@ func Query(name string, t uint16) ([]dns.RR, error) {
 		return nil, err
 	}
 
-	switch in.Rcode {
-	case 0:
+	if in.Rcode == 0 {
 		return in.Answer, nil
-	case 1:
-		return nil, ErrFormat
-	case 2:
-		return nil, ErrServerFailure
-	case 3:
-		return nil, ErrName
-	case 4:
-		return nil, ErrNotImplemented
-	case 5:
-		return nil, ErrRefused
-	default:
-		return nil, fmt.Errorf(dns.RcodeToString[in.Rcode])
 	}
+
+	return nil, RcodeToError(in.Rcode)
 }
 
 // IsSet checks whether a record with type t is set for name.
@@ -114,19 +94,11 @@ func IsSet(name string, t uint16) (bool, error) {
 	switch in.Rcode {
 	case 0:
 		return len(in.Answer) != 0, nil
-	case 1:
-		return false, ErrFormat
-	case 2:
-		return false, ErrServerFailure
 	case 3:
 		// NXDOMAIN means "not found",  not an error here
 		return false, nil
-	case 4:
-		return false, ErrNotImplemented
-	case 5:
-		return false, ErrRefused
 	default:
-		return false, fmt.Errorf(dns.RcodeToString[in.Rcode])
+		return false, RcodeToError(in.Rcode)
 	}
 }
 
