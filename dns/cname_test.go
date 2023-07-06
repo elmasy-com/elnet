@@ -9,15 +9,19 @@ func TestQueryCNAME(t *testing.T) {
 		t.Fatalf("TestQueryCNAME failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	for i := range r {
+		t.Logf("autodiscover.elmasy.com CNAME -> %s\n", r[i])
+	}
 }
 
 func TestQueryCNAMERetry(t *testing.T) {
 
-	r, err := QueryCNAMERetry("elmasy.com")
+	r, err := QueryCNAMERetry("autodiscover.elmasy.com")
 	if err != nil {
 		t.Fatalf("TestQueryCNAMERetry failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	for i := range r {
+		t.Logf("autodiscover.elmasy.com CNAME -> %s\n", r[i])
+	}
 }

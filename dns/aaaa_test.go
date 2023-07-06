@@ -9,7 +9,9 @@ func TestQueryAAAA(t *testing.T) {
 		t.Fatalf("TestQueryAAAA failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	for i := range r {
+		t.Logf("elmasy.com AAAA -> %s\n", r[i])
+	}
 }
 
 func TestQueryAAAARetry(t *testing.T) {
@@ -19,7 +21,9 @@ func TestQueryAAAARetry(t *testing.T) {
 		t.Fatalf("TestQueryAAAARetry failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	for i := range r {
+		t.Logf("elmasy.com AAAA -> %s\n", r[i])
+	}
 }
 
 func TestIsSetAAAA(t *testing.T) {
@@ -32,6 +36,4 @@ func TestIsSetAAAA(t *testing.T) {
 	if r != true {
 		t.Fatalf("TestAIsSet failed: elmasy.com is not set!\n")
 	}
-
-	t.Logf("%#v\n", r)
 }

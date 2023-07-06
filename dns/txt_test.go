@@ -9,7 +9,9 @@ func TestQueryTXT(t *testing.T) {
 		t.Fatalf("TestQueryTXT failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	for i := range r {
+		t.Logf("elmasy.com TXT -> %s\n", r[i])
+	}
 }
 
 func TestQueryTXTRetry(t *testing.T) {
@@ -19,5 +21,7 @@ func TestQueryTXTRetry(t *testing.T) {
 		t.Fatalf("TestQueryTXTRetry failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	for i := range r {
+		t.Logf("elmasy.com TXT -> %s\n", r[i])
+	}
 }

@@ -12,7 +12,9 @@ func TestQueryA(t *testing.T) {
 		t.Fatalf("TestQueryA failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	for i := range r {
+		t.Logf("elmasy.com A -> %s\n", r[i])
+	}
 }
 
 func TestQueryAInvalid(t *testing.T) {
@@ -49,7 +51,9 @@ func TestQueryARetry(t *testing.T) {
 		t.Fatalf("TestQueryARetry failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	for i := range r {
+		t.Logf("elmasy.com A -> %s\n", r[i])
+	}
 }
 
 func TestQueryARetryInvalidMaxRetries(t *testing.T) {
@@ -78,6 +82,4 @@ func TestIsSetA(t *testing.T) {
 	if r != true {
 		t.Fatalf("TestIsSetA failed: elmasy.com is not set!\n")
 	}
-
-	t.Logf("%#v\n", r)
 }

@@ -9,7 +9,9 @@ func TestQueryMX(t *testing.T) {
 		t.Fatalf("TestQueryMX failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	for i := range r {
+		t.Logf("elmasy.com MX -> %s\n", r[i])
+	}
 }
 
 func TestQueryMXRetry(t *testing.T) {
@@ -19,5 +21,7 @@ func TestQueryMXRetry(t *testing.T) {
 		t.Fatalf("TestQueryMXRetry failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	for i := range r {
+		t.Logf("elmasy.com MX -> %s\n", r[i])
+	}
 }

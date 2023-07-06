@@ -9,7 +9,7 @@ func TestQuerySOA(t *testing.T) {
 		t.Fatalf("TestQuerySOA failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	t.Logf("elmasy.com SOA -> %s\n", r)
 }
 
 func TestQuerySOARetry(t *testing.T) {
@@ -19,5 +19,5 @@ func TestQuerySOARetry(t *testing.T) {
 		t.Fatalf("TestQuerySOARetry failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	t.Logf("elmasy.com SOA -> %s\n", r)
 }

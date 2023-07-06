@@ -9,7 +9,9 @@ func TestQueryNS(t *testing.T) {
 		t.Fatalf("TestQueryNS failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	for i := range r {
+		t.Logf("elmasy.com NS -> %s\n", r[i])
+	}
 }
 
 func TestQueryNSRetry(t *testing.T) {
@@ -19,5 +21,7 @@ func TestQueryNSRetry(t *testing.T) {
 		t.Fatalf("TestQueryNSRetry failed: %s\n", err)
 	}
 
-	t.Logf("%#v\n", r)
+	for i := range r {
+		t.Logf("elmasy.com NS -> %s\n", r[i])
+	}
 }
