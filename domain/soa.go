@@ -18,7 +18,7 @@ type SOA struct {
 }
 
 // QuerySOA returns the answer as a SOA struct.
-// Tyhe returned *SOA **cant be nil** if error is nil.
+// The returned *SOA **cant be nil** if error is nil.
 // Returns nil in case of error.
 func QuerySOA(name string) (*SOA, error) {
 
