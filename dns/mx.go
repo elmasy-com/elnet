@@ -37,19 +37,15 @@ func QueryMX(name string) ([]MX, error) {
 	return r, nil
 }
 
-// QueryMXRetry query for MX record and retry for n times if an error occured.
-func QueryMXRetry(name string, n int) ([]MX, error) {
-
-	if n < 1 {
-		return nil, fmt.Errorf("invalid number of retry: %d", n)
-	}
+// QueryMXRetry query for MX record and retry for MaxRetries times if an error occured.
+func QueryMXRetry(name string) ([]MX, error) {
 
 	var (
-		r   []MX = nil
-		err error
+		r   []MX  = nil
+		err error = ErrInvalidMaxRetries
 	)
 
-	for i := 0; i < n; i++ {
+	for i := 0; i < MaxRetries; i++ {
 
 		r, err = QueryMX(name)
 		if err == nil {

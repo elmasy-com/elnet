@@ -14,7 +14,7 @@ func TestQueryMX(t *testing.T) {
 
 func TestQueryMXRetry(t *testing.T) {
 
-	r, err := QueryMXRetry("elmasy.com", 3)
+	r, err := QueryMXRetry("elmasy.com")
 	if err != nil {
 		t.Fatalf("TestQueryMXRetry failed: %s\n", err)
 	}

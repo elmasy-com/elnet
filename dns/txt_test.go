@@ -14,7 +14,7 @@ func TestQueryTXT(t *testing.T) {
 
 func TestQueryTXTRetry(t *testing.T) {
 
-	r, err := QueryTXTRetry("elmasy.com", 3)
+	r, err := QueryTXTRetry("elmasy.com")
 	if err != nil {
 		t.Fatalf("TestQueryTXTRetry failed: %s\n", err)
 	}

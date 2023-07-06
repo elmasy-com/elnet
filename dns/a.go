@@ -38,19 +38,15 @@ func QueryA(name string) ([]net.IP, error) {
 	return r, nil
 }
 
-// QueryARetry query for A record and retry for n times if an error occured.
-func QueryARetry(name string, n int) ([]net.IP, error) {
-
-	if n < 1 {
-		return nil, fmt.Errorf("invalid number of retry: %d", n)
-	}
+// QueryARetry query for A record and retry for MaxRetries times if an error occured.
+func QueryARetry(name string) ([]net.IP, error) {
 
 	var (
 		r   []net.IP = nil
-		err error
+		err error    = ErrInvalidMaxRetries
 	)
 
-	for i := 0; i < n; i++ {
+	for i := 0; i < MaxRetries; i++ {
 
 		r, err = QueryA(name)
 		if err == nil {

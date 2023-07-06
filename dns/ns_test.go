@@ -14,7 +14,7 @@ func TestQueryNS(t *testing.T) {
 
 func TestQueryNSRetry(t *testing.T) {
 
-	r, err := QueryNSRetry("elmasy.com", 3)
+	r, err := QueryNSRetry("elmasy.com")
 	if err != nil {
 		t.Fatalf("TestQueryNSRetry failed: %s\n", err)
 	}

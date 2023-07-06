@@ -14,7 +14,7 @@ func TestQuerySOA(t *testing.T) {
 
 func TestQuerySOARetry(t *testing.T) {
 
-	r, err := QuerySOARetry("elmasy.com", 3)
+	r, err := QuerySOARetry("elmasy.com")
 	if err != nil {
 		t.Fatalf("TestQuerySOARetry failed: %s\n", err)
 	}

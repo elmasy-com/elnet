@@ -32,19 +32,15 @@ func QueryNS(name string) ([]string, error) {
 	return r, nil
 }
 
-// QueryNSRetry query for NS record and retry for n times if an error occured.
-func QueryNSRetry(name string, n int) ([]string, error) {
-
-	if n < 1 {
-		return nil, fmt.Errorf("invalid number of retry: %d", n)
-	}
+// QueryNSRetry query for NS record and retry for MaxRetries times if an error occured.
+func QueryNSRetry(name string) ([]string, error) {
 
 	var (
 		r   []string = nil
-		err error
+		err error    = ErrInvalidMaxRetries
 	)
 
-	for i := 0; i < n; i++ {
+	for i := 0; i < MaxRetries; i++ {
 
 		r, err = QueryNS(name)
 		if err == nil {

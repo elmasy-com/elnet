@@ -44,12 +44,28 @@ func TestQueryALenZero(t *testing.T) {
 
 func TestQueryARetry(t *testing.T) {
 
-	r, err := QueryARetry("elmasy.com", 3)
+	r, err := QueryARetry("elmasy.com")
 	if err != nil {
 		t.Fatalf("TestQueryARetry failed: %s\n", err)
 	}
 
 	t.Logf("%#v\n", r)
+}
+
+func TestQueryARetryInvalidMaxRetries(t *testing.T) {
+
+	MaxRetries = 0
+
+	_, err := QueryARetry("elmasy.com")
+	if err == nil {
+		t.Fatalf("TestQueryARetry failed: err is nil\n")
+	}
+
+	if !errors.Is(err, ErrInvalidMaxRetries) {
+		t.Fatalf("TestQueryARetry failed: %s\n", err)
+	}
+
+	MaxRetries = 5
 }
 
 func TestIsSetA(t *testing.T) {

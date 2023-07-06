@@ -42,19 +42,15 @@ func QuerySOA(name string) (*SOA, error) {
 	return &SOA{Mname: v.Ns, Rname: v.Mbox, Serial: int(v.Serial), Refresh: int(v.Refresh), Retry: int(v.Retry), Expire: int(v.Expire), MinTTL: int(v.Minttl)}, err
 }
 
-// QuerySOARetry query for SOA record and retry for n times if an error occured.
-func QuerySOARetry(name string, n int) (*SOA, error) {
-
-	if n < 1 {
-		return nil, fmt.Errorf("invalid number of retry: %d", n)
-	}
+// QuerySOARetry query for SOA record and retry for MaxRetries times if an error occured.
+func QuerySOARetry(name string) (*SOA, error) {
 
 	var (
-		r   *SOA = nil
-		err error
+		r   *SOA  = nil
+		err error = ErrInvalidMaxRetries
 	)
 
-	for i := 0; i < n; i++ {
+	for i := 0; i < MaxRetries; i++ {
 
 		r, err = QuerySOA(name)
 		if err == nil {

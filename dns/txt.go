@@ -32,19 +32,15 @@ func QueryTXT(name string) ([]string, error) {
 	return r, nil
 }
 
-// QueryTXTRetry query for TXT record and retry for n times if an error occured.
-func QueryTXTRetry(name string, n int) ([]string, error) {
-
-	if n < 1 {
-		return nil, fmt.Errorf("invalid number of retry: %d", n)
-	}
+// QueryTXTRetry query for TXT record and retry for MaxRetries times if an error occured.
+func QueryTXTRetry(name string) ([]string, error) {
 
 	var (
 		r   []string = nil
-		err error
+		err error    = ErrInvalidMaxRetries
 	)
 
-	for i := 0; i < n; i++ {
+	for i := 0; i < MaxRetries; i++ {
 
 		r, err = QueryTXT(name)
 		if err == nil {

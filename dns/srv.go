@@ -39,19 +39,15 @@ func QuerySRV(name string) ([]SRV, error) {
 	return r, err
 }
 
-// QuerySRVRetry query for SRV record and retry for n times if an error occured.
-func QuerySRVRetry(name string, n int) ([]SRV, error) {
-
-	if n < 1 {
-		return nil, fmt.Errorf("invalid number of retry: %d", n)
-	}
+// QuerySRVRetry query for SRV record and retry for MaxRetries times if an error occured.
+func QuerySRVRetry(name string) ([]SRV, error) {
 
 	var (
 		r   []SRV = nil
-		err error
+		err error = ErrInvalidMaxRetries
 	)
 
-	for i := 0; i < n; i++ {
+	for i := 0; i < MaxRetries; i++ {
 
 		r, err = QuerySRV(name)
 		if err == nil {

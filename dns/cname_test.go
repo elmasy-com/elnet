@@ -14,7 +14,7 @@ func TestQueryCNAME(t *testing.T) {
 
 func TestQueryCNAMERetry(t *testing.T) {
 
-	r, err := QueryCNAMERetry("elmasy.com", 3)
+	r, err := QueryCNAMERetry("elmasy.com")
 	if err != nil {
 		t.Fatalf("TestQueryCNAMERetry failed: %s\n", err)
 	}

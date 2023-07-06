@@ -14,7 +14,7 @@ func TestQueryAAAA(t *testing.T) {
 
 func TestQueryAAAARetry(t *testing.T) {
 
-	r, err := QueryAAAARetry("elmasy.com", 3)
+	r, err := QueryAAAARetry("elmasy.com")
 	if err != nil {
 		t.Fatalf("TestQueryAAAARetry failed: %s\n", err)
 	}
