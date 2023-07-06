@@ -6,6 +6,10 @@ import (
 )
 
 var (
+	ErrInvalidMaxRetries = errors.New("invalid MaxRetries")
+)
+
+var (
 	ErrNoError        = errors.New("NOERROR")  // NOERROR
 	ErrFormat         = errors.New("FORMERR")  // FORMERR
 	ErrServerFailure  = errors.New("SERVFAIL") // SERVFAIL
