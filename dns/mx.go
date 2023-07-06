@@ -18,16 +18,12 @@ type MX struct {
 // Returns nil in case of error.
 func QueryMX(name string) ([]MX, error) {
 
-	var (
-		a   []dns.RR
-		r   = make([]MX, 0)
-		err error
-	)
-
-	a, err = Query(name, TypeMX)
+	a, err := Query(name, TypeMX)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
+
+	r := make([]MX, 0)
 
 	for i := range a {
 
@@ -35,11 +31,11 @@ func QueryMX(name string) ([]MX, error) {
 		case *dns.MX:
 			r = append(r, MX{Preference: int(v.Preference), Exchange: v.Mx})
 		default:
-			return r, fmt.Errorf("unknown type: %T", v)
+			return nil, fmt.Errorf("unknown type: %T", v)
 		}
 	}
 
-	return r, err
+	return r, nil
 }
 
 // IsSetMX checks whether an MX type record set for name.

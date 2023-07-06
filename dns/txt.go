@@ -13,16 +13,12 @@ var TypeTXT uint16 = 16
 // Returns nil in case of error.
 func QueryTXT(name string) ([]string, error) {
 
-	var (
-		a   []dns.RR
-		r   = make([]string, 0)
-		err error
-	)
-
-	a, err = Query(name, TypeTXT)
+	a, err := Query(name, TypeTXT)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
+
+	r := make([]string, 0)
 
 	for i := range a {
 
@@ -30,11 +26,11 @@ func QueryTXT(name string) ([]string, error) {
 		case *dns.TXT:
 			r = append(r, v.Txt...)
 		default:
-			return r, fmt.Errorf("unknown type: %T", v)
+			return nil, fmt.Errorf("unknown type: %T", v)
 		}
 	}
 
-	return r, err
+	return r, nil
 }
 
 // IsSetTXT checks whether an TXT type record set for name.

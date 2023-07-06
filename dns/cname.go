@@ -13,16 +13,12 @@ var TypeCNAME uint16 = 5
 // Returns nil in case of error.
 func QueryCNAME(name string) ([]string, error) {
 
-	var (
-		a   []dns.RR
-		r   = make([]string, 0)
-		err error
-	)
-
-	a, err = Query(name, TypeCNAME)
+	a, err := Query(name, TypeCNAME)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
+
+	r := make([]string, 0)
 
 	for i := range a {
 
@@ -30,11 +26,11 @@ func QueryCNAME(name string) ([]string, error) {
 		case *dns.CNAME:
 			r = append(r, v.Target)
 		default:
-			return r, fmt.Errorf("unknown type: %T", v)
+			return nil, fmt.Errorf("unknown type: %T", v)
 		}
 	}
 
-	return r, err
+	return r, nil
 }
 
 // IsSetCNAME checks whether an CNAME type record set for name.

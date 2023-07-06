@@ -14,16 +14,12 @@ var TypeA uint16 = 1
 // The answer slice will be nil in case of error.
 func QueryA(name string) ([]net.IP, error) {
 
-	var (
-		a   []dns.RR
-		r   = make([]net.IP, 0)
-		err error
-	)
-
-	a, err = Query(name, TypeA)
+	a, err := Query(name, TypeA)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
+
+	r := make([]net.IP, 0)
 
 	for i := range a {
 
@@ -34,11 +30,11 @@ func QueryA(name string) ([]net.IP, error) {
 			// Ignore CNAME
 			continue
 		default:
-			return r, fmt.Errorf("unknown type: %T", v)
+			return nil, fmt.Errorf("unknown type: %T", v)
 		}
 	}
 
-	return r, err
+	return r, nil
 }
 
 // IsSetA checks whether an A type record set for name.

@@ -13,16 +13,12 @@ var TypeNS uint16 = 2
 // Returns nil in case of error.
 func QueryNS(name string) ([]string, error) {
 
-	var (
-		a   []dns.RR
-		r   = make([]string, 0)
-		err error
-	)
-
-	a, err = Query(name, TypeNS)
+	a, err := Query(name, TypeNS)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
+
+	r := make([]string, 0)
 
 	for i := range a {
 
@@ -30,11 +26,11 @@ func QueryNS(name string) ([]string, error) {
 		case *dns.NS:
 			r = append(r, v.Ns)
 		default:
-			return r, fmt.Errorf("unknown type: %T", v)
+			return nil, fmt.Errorf("unknown type: %T", v)
 		}
 	}
 
-	return r, err
+	return r, nil
 }
 
 // IsSetNS checks whether an NS type record set for name.

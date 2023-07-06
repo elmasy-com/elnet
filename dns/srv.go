@@ -20,16 +20,12 @@ var TypeSRV uint16 = 33
 // Returns nil in case of error.
 func QuerySRV(name string) ([]SRV, error) {
 
-	var (
-		a   []dns.RR
-		r   = make([]SRV, 0)
-		err error
-	)
-
-	a, err = Query(name, TypeSRV)
+	a, err := Query(name, TypeSRV)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
+
+	r := make([]SRV, 0)
 
 	for i := range a {
 
@@ -37,7 +33,7 @@ func QuerySRV(name string) ([]SRV, error) {
 		case *dns.SRV:
 			r = append(r, SRV{Priority: int(v.Priority), Weight: int(v.Weight), Port: int(v.Port), Target: v.Target})
 		default:
-			return r, fmt.Errorf("unknown type: %T", v)
+			return nil, fmt.Errorf("unknown type: %T", v)
 		}
 	}
 
