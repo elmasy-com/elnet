@@ -11,9 +11,9 @@ require (
 	github.com/google/gopacket v1.1.19
 	github.com/miekg/dns v1.1.54
 	github.com/refraction-networking/utls v1.3.2
-	golang.org/x/crypto v0.5.0
-	golang.org/x/net v0.10.0
-	golang.org/x/sys v0.8.0
+	golang.org/x/crypto v0.11.0
+	golang.org/x/net v0.12.0
+	golang.org/x/sys v0.10.0
 )
 
 require (
