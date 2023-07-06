@@ -6,6 +6,8 @@ import (
 	"github.com/miekg/dns"
 )
 
+var TypeMX uint16 = 15
+
 type MX struct {
 	Preference int    // Priority
 	Exchange   string // Server's hostname
@@ -22,7 +24,7 @@ func QueryMX(name string) ([]MX, error) {
 		err error
 	)
 
-	a, err = Query(name, dns.TypeMX)
+	a, err = Query(name, TypeMX)
 	if err != nil {
 		return r, err
 	}
@@ -43,5 +45,5 @@ func QueryMX(name string) ([]MX, error) {
 // IsSetMX checks whether an MX type record set for name.
 // NXDOMAIN is not an error here, because it means "not found".
 func IsSetMX(name string) (bool, error) {
-	return IsSet(name, dns.TypeMX)
+	return IsSet(name, TypeMX)
 }

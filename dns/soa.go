@@ -6,6 +6,8 @@ import (
 	"github.com/miekg/dns"
 )
 
+var TypeSOA uint16 = 6
+
 // See more: https://www.rfc-editor.org/rfc/rfc1035.html#section-3.3.13
 type SOA struct {
 	Mname   string
@@ -22,7 +24,7 @@ type SOA struct {
 // Returns nil in case of error.
 func QuerySOA(name string) (*SOA, error) {
 
-	a, err := Query(name, dns.TypeSOA)
+	a, err := Query(name, TypeSOA)
 	if err != nil {
 		return nil, err
 	}

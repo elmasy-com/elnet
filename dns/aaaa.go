@@ -7,6 +7,8 @@ import (
 	"github.com/miekg/dns"
 )
 
+var TypeAAAA uint16 = 28
+
 // QueryAAAA returns a slice of net.IP.
 // The length of the returned slice can be 0 if no record matching for type AAAA, but record with other type exist.
 // Returns nil in case of error.
@@ -18,7 +20,7 @@ func QueryAAAA(name string) ([]net.IP, error) {
 		err error
 	)
 
-	a, err = Query(name, dns.TypeAAAA)
+	a, err = Query(name, TypeAAAA)
 	if err != nil {
 		return r, err
 	}
@@ -42,5 +44,5 @@ func QueryAAAA(name string) ([]net.IP, error) {
 // IsSetAAAA checks whether an AAAA type record set for name.
 // NXDOMAIN is not an error here, because it means "not found".
 func IsSetAAAA(name string) (bool, error) {
-	return IsSet(name, dns.TypeAAAA)
+	return IsSet(name, TypeAAAA)
 }
