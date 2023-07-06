@@ -13,6 +13,10 @@ import (
 // Set in the init() function to read resolv.conf or use Cloudflare + Google.
 var Conf *dns.ClientConfig
 
+// MaxRetries is the default number of retries of failed queries.
+// Must be greater than 1, else functions will fail with ErrInvalidMaxRetries.
+var MaxRetries int = 5
+
 // Initialize Conf.
 // If reading resolv.conf failed, use Cloudflare + Google
 func init() {
@@ -78,15 +82,26 @@ func Query(name string, t uint16) ([]dns.RR, error) {
 }
 
 // IsSet checks whether a record with type t is set for name.
+// This function retries the query in case of error up to MaxRetries times.
 // NXDOMAIN is not an error here, because it means "not found".
 func IsSet(name string, t uint16) (bool, error) {
 
+	err := ErrInvalidMaxRetries
+	var in *dns.Msg
+
 	name = dns.Fqdn(name)
 
-	msg := new(dns.Msg)
-	msg.SetQuestion(name, t)
+	for i := 0; i < MaxRetries; i++ {
 
-	in, err := dns.Exchange(msg, getServer())
+		msg := new(dns.Msg)
+		msg.SetQuestion(name, t)
+
+		in, err = dns.Exchange(msg, getServer())
+		if err == nil {
+			break
+		}
+	}
+
 	if err != nil {
 		return false, err
 	}
