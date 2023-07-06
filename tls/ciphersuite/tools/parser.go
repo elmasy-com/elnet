@@ -12,7 +12,7 @@ import (
 )
 
 /*
-	Parse every ciphersuite from ciphersuite.info and print it to stdout formatted as a Go struct.
+Parse every ciphersuite from ciphersuite.info and print it to stdout formatted as a Go struct.
 */
 type CipherInfo struct {
 	ByteOne  string   `json:"hex_byte_1"`
