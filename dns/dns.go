@@ -117,7 +117,7 @@ func IsSet(name string, t uint16) (bool, error) {
 	}
 }
 
-// IsExists checks whether a record with type A, AAAA, TXT, CNAME, MX, NS or SRV is set for name.
+// IsExists checks whether a record with type A, AAAA, TXT, CNAME, MX, NS, CAA or SRV is set for name.
 // NXDOMAIN is not an error here, because it means "not found".
 //
 // If found a setted record, this function returns without trying for the other types.
@@ -174,6 +174,15 @@ func IsExists(name string) (bool, error) {
 		return false, fmt.Errorf("check NS failed: %w", err)
 	}
 	if setNS {
+		return true, nil
+	}
+
+	// CAA
+	setCAA, err := IsSetCAA(name)
+	if err != nil {
+		return false, fmt.Errorf("chack CAA failed: %w", err)
+	}
+	if setCAA {
 		return true, nil
 	}
 
