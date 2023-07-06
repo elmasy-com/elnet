@@ -3,7 +3,7 @@ package valid
 import (
 	"strings"
 
-	"github.com/elmasy-com/elnet/domain"
+	"github.com/elmasy-com/elnet/dns"
 	"github.com/elmasy-com/elnet/ip"
 	"github.com/elmasy-com/elnet/url"
 )
@@ -25,7 +25,7 @@ func IPv6[T ip.IPTypes](v T) bool {
 
 // Returns whether v is a valid domain.
 func Domain(v string) bool {
-	return domain.IsValid(v)
+	return dns.IsValid(v)
 }
 
 // Returns whether v is a valid URL.
