@@ -26,6 +26,18 @@ func TestQueryAAAARetry(t *testing.T) {
 	}
 }
 
+func TestQueryAAAARetryStr(t *testing.T) {
+
+	r, err := QueryAAAARetryStr("elmasy.com")
+	if err != nil {
+		t.Fatalf("TestQueryAAAARetry failed: %s\n", err)
+	}
+
+	for i := range r {
+		t.Logf("elmasy.com AAAA -> %s\n", r[i])
+	}
+}
+
 func TestIsSetAAAA(t *testing.T) {
 
 	r, err := IsSetAAAA("elmasy.com")

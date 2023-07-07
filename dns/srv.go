@@ -65,6 +65,23 @@ func QuerySRVRetry(name string) ([]SRV, error) {
 	return nil, err
 }
 
+// QuerySRVRetryStr query for SRV record and retry for MaxRetries times if an error occured and returns the result as a string slice.
+func QuerySRVRetryStr(name string) ([]string, error) {
+
+	r, err := QuerySRVRetry(name)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]string, 0, len(r))
+
+	for i := range r {
+		result = append(result, r[i].String())
+	}
+
+	return result, nil
+}
+
 // IsSetSRV checks whether an SRV type record set for name.
 // NXDOMAIN is not an error here, because it means "not found".
 func IsSetSRV(name string) (bool, error) {

@@ -34,6 +34,18 @@ func TestQueryCAARetry(t *testing.T) {
 	}
 }
 
+func TestQueryCAARetryStr(t *testing.T) {
+
+	r, err := QueryCAARetryStr("github.com")
+	if err != nil {
+		t.Fatalf("TestQueryCAARetry failed: %s\n", err)
+	}
+
+	for i := range r {
+		t.Logf("github.com CAA -> %s\n", r[i])
+	}
+}
+
 func TestIsSetCAA(t *testing.T) {
 
 	r, err := IsSetCAA("github.com")

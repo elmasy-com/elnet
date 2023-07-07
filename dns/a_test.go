@@ -56,6 +56,18 @@ func TestQueryARetry(t *testing.T) {
 	}
 }
 
+func TestQueryARetryStr(t *testing.T) {
+
+	r, err := QueryARetryStr("elmasy.com")
+	if err != nil {
+		t.Fatalf("TestQueryARetry failed: %s\n", err)
+	}
+
+	for i := range r {
+		t.Logf("elmasy.com A -> %s\n", r[i])
+	}
+}
+
 func TestQueryARetryInvalidMaxRetries(t *testing.T) {
 
 	MaxRetries = 0

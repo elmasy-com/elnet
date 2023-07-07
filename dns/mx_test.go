@@ -25,3 +25,15 @@ func TestQueryMXRetry(t *testing.T) {
 		t.Logf("elmasy.com MX -> %s\n", r[i])
 	}
 }
+
+func TestQueryMXRetryStr(t *testing.T) {
+
+	r, err := QueryARetryStr("elmasy.com")
+	if err != nil {
+		t.Fatalf("TestQueryMXRetry failed: %s\n", err)
+	}
+
+	for i := range r {
+		t.Logf("elmasy.com MX -> %s\n", r[i])
+	}
+}

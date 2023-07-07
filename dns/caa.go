@@ -64,6 +64,23 @@ func QueryCAARetry(name string) ([]CAA, error) {
 	return nil, err
 }
 
+// QueryCAARetryStr query for CAA record and retry for MaxRetries times if an error occured and returns the result as a string slice.
+func QueryCAARetryStr(name string) ([]string, error) {
+
+	r, err := QueryCAARetry(name)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]string, 0, len(r))
+
+	for i := range r {
+		result = append(result, r[i].String())
+	}
+
+	return result, nil
+}
+
 // IsSetCAA checks whether an A type record set for name.
 // NXDOMAIN is not an error here, because it means "not found".
 func IsSetCAA(name string) (bool, error) {

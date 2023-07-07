@@ -57,6 +57,23 @@ func QueryAAAARetry(name string) ([]net.IP, error) {
 	return nil, err
 }
 
+// QueryAAAARetryStr query for AAAA record and retry for MaxRetries times if an error occured and returns the result as a string slice.
+func QueryAAAARetryStr(name string) ([]string, error) {
+
+	r, err := QueryAAAARetry(name)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]string, 0, len(r))
+
+	for i := range r {
+		result = append(result, r[i].String())
+	}
+
+	return result, nil
+}
+
 // IsSetAAAA checks whether an AAAA type record set for name.
 // NXDOMAIN is not an error here, because it means "not found".
 func IsSetAAAA(name string) (bool, error) {

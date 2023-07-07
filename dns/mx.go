@@ -63,6 +63,23 @@ func QueryMXRetry(name string) ([]MX, error) {
 	return nil, err
 }
 
+// QueryMXRetryStr query for MX record and retry for MaxRetries times if an error occured and returns the result as a string slice.
+func QueryMXRetryStr(name string) ([]string, error) {
+
+	r, err := QueryMXRetry(name)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]string, 0, len(r))
+
+	for i := range r {
+		result = append(result, r[i].String())
+	}
+
+	return result, nil
+}
+
 // IsSetMX checks whether an MX type record set for name.
 // NXDOMAIN is not an error here, because it means "not found".
 func IsSetMX(name string) (bool, error) {
