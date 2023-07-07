@@ -24,6 +24,9 @@ func QueryNS(name string) ([]string, error) {
 		switch v := a[i].(type) {
 		case *dns.NS:
 			r = append(r, v.Ns)
+		case *dns.CNAME:
+			// Ignore CNAME
+			continue
 		default:
 			return nil, fmt.Errorf("unknown type: %T", v)
 		}
