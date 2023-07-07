@@ -24,6 +24,9 @@ func QueryTXT(name string) ([]string, error) {
 		switch v := a[i].(type) {
 		case *dns.TXT:
 			r = append(r, v.Txt...)
+		case *dns.CNAME:
+			// Ignore CNAME
+			continue
 		default:
 			return nil, fmt.Errorf("unknown type: %T", v)
 		}

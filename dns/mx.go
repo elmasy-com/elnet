@@ -33,6 +33,9 @@ func QueryMX(name string) ([]MX, error) {
 		switch v := a[i].(type) {
 		case *dns.MX:
 			r = append(r, MX{Preference: int(v.Preference), Exchange: v.Mx})
+		case *dns.CNAME:
+			// Ignore CNAME
+			continue
 		default:
 			return nil, fmt.Errorf("unknown type: %T", v)
 		}

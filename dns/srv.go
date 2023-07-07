@@ -35,6 +35,9 @@ func QuerySRV(name string) ([]SRV, error) {
 		switch v := a[i].(type) {
 		case *dns.SRV:
 			r = append(r, SRV{Priority: int(v.Priority), Weight: int(v.Weight), Port: int(v.Port), Target: v.Target})
+		case *dns.CNAME:
+			// Ignore CNAME
+			continue
 		default:
 			return nil, fmt.Errorf("unknown type: %T", v)
 		}

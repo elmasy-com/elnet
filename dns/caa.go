@@ -34,6 +34,9 @@ func QueryCAA(name string) ([]CAA, error) {
 		switch v := a[i].(type) {
 		case *dns.CAA:
 			r = append(r, CAA{Flag: v.Flag, Tag: v.Tag, Value: v.Value})
+		case *dns.CNAME:
+			// Ignore CNAME
+			continue
 		default:
 			return nil, fmt.Errorf("unknown type: %T", v)
 		}
