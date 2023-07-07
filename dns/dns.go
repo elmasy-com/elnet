@@ -59,6 +59,17 @@ func getServer() string {
 	return r + ":53"
 }
 
+func UpdateConf(servers []string) {
+	Conf = new(dns.ClientConfig)
+
+	Conf.Servers = servers
+	Conf.Search = make([]string, 0)
+	Conf.Port = "53"
+	Conf.Ndots = 1
+	Conf.Timeout = 5
+	Conf.Attempts = 2
+}
+
 // Generic query for type t.
 // Returns the Answer section.
 // In case of error, the answer will be nil and return ErrX or any unknown error.
