@@ -3,6 +3,7 @@ package dns
 import (
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/elmasy-com/identify"
 	"github.com/miekg/dns"
@@ -12,6 +13,8 @@ import (
 //
 // Set in the init() function to read resolv.conf or use Cloudflare + Google.
 var Conf *dns.ClientConfig
+
+var Client *dns.Client
 
 // MaxRetries is the default number of retries of failed queries.
 // Must be greater than 1, else functions will fail with ErrInvalidMaxRetries.
@@ -23,19 +26,14 @@ func init() {
 
 	var err error
 
+	Client = &dns.Client{Net: "udp"}
+
 	Conf, err = dns.ClientConfigFromFile("/etc/resolv.conf")
 	if err == nil {
 		return
 	}
 
-	Conf = new(dns.ClientConfig)
-
-	Conf.Servers = []string{"1.1.1.1", "1.0.0.1", "8.8.8.8", "8.8.4.4"}
-	Conf.Search = make([]string, 0)
-	Conf.Port = "53"
-	Conf.Ndots = 1
-	Conf.Timeout = 5
-	Conf.Attempts = 2
+	UpdateConf([]string{"1.1.1.1", "1.0.0.1", "8.8.8.8", "8.8.4.4"}, "53")
 }
 
 // getServer used to randomize DNS servers.
@@ -56,18 +54,33 @@ func getServer() string {
 		r = "[" + r + "]"
 	}
 
-	return r + ":53"
+	return r + ":" + Conf.Port
 }
 
-func UpdateConf(servers []string) {
+// Create a new ClientConfig for Conf.
+func UpdateConf(servers []string, port string) {
+
 	Conf = new(dns.ClientConfig)
 
 	Conf.Servers = servers
 	Conf.Search = make([]string, 0)
-	Conf.Port = "53"
+	Conf.Port = port
 	Conf.Ndots = 1
 	Conf.Timeout = 5
 	Conf.Attempts = 2
+}
+
+// Create a new Client for default client.
+// net must be "udp", "tcp" or "tcp-tls".
+func UpdateClient(net string, timeout time.Duration) error {
+
+	if net != "udp" && net != "tcp" && net != "tcp-tls" {
+		return fmt.Errorf("invalid net: %s", net)
+	}
+
+	Client = &dns.Client{Net: net, Timeout: timeout}
+
+	return nil
 }
 
 // Generic query for type t.
@@ -80,7 +93,7 @@ func Query(name string, t uint16) ([]dns.RR, error) {
 	msg := new(dns.Msg)
 	msg.SetQuestion(name, t)
 
-	in, err := dns.Exchange(msg, getServer())
+	in, _, err := Client.Exchange(msg, getServer())
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +120,7 @@ func IsSet(name string, t uint16) (bool, error) {
 		msg := new(dns.Msg)
 		msg.SetQuestion(name, t)
 
-		in, err = dns.Exchange(msg, getServer())
+		in, _, err = Client.Exchange(msg, getServer())
 		if err == nil {
 			break
 		}
