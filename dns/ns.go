@@ -27,6 +27,39 @@ func QueryNS(name string) ([]string, error) {
 		case *dns.CNAME:
 			// Ignore CNAME
 			continue
+		case *dns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
+	}
+
+	return r, nil
+}
+
+// QueryNSServer returns the answer as a string slice. Use server s to query.
+// Returns nil in case of error.
+func QueryNSServer(name string, s string) ([]string, error) {
+
+	a, err := QueryServer(name, TypeNS, s)
+	if err != nil {
+		return nil, err
+	}
+
+	r := make([]string, 0)
+
+	for i := range a {
+
+		switch v := a[i].(type) {
+		case *dns.NS:
+			r = append(r, v.Ns)
+		case *dns.CNAME:
+			// Ignore CNAME
+			continue
+		case *dns.DNAME:
+			// Ignore DNAME
+			continue
 		default:
 			return nil, fmt.Errorf("unknown type: %T", v)
 		}
@@ -45,7 +78,7 @@ func QueryNSRetry(name string) ([]string, error) {
 
 	for i := 0; i < MaxRetries; i++ {
 
-		r, err = QueryNS(name)
+		r, err = QueryNSServer(name, getServer(i))
 		if err == nil {
 			return r, nil
 		}

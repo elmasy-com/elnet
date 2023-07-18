@@ -37,6 +37,39 @@ func QueryCAA(name string) ([]CAA, error) {
 		case *dns.CNAME:
 			// Ignore CNAME
 			continue
+		case *dns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
+	}
+
+	return r, nil
+}
+
+// QueryCAAServer returns a slice of net.IP. Use server s to query.
+// The answer slice will be nil in case of error.
+func QueryCAAServer(name string, s string) ([]CAA, error) {
+
+	a, err := QueryServer(name, TypeCAA, s)
+	if err != nil {
+		return nil, err
+	}
+
+	r := make([]CAA, 0)
+
+	for i := range a {
+
+		switch v := a[i].(type) {
+		case *dns.CAA:
+			r = append(r, CAA{Flag: v.Flag, Tag: v.Tag, Value: v.Value})
+		case *dns.CNAME:
+			// Ignore CNAME
+			continue
+		case *dns.DNAME:
+			// Ignore DNAME
+			continue
 		default:
 			return nil, fmt.Errorf("unknown type: %T", v)
 		}
@@ -55,7 +88,7 @@ func QueryCAARetry(name string) ([]CAA, error) {
 
 	for i := 0; i < MaxRetries; i++ {
 
-		r, err = QueryCAA(name)
+		r, err = QueryCAAServer(name, getServer(i))
 		if err == nil {
 			return r, nil
 		}

@@ -12,7 +12,7 @@ var TypeA uint16 = 1
 // QueryA returns a slice of net.IP.
 // The answer slice will be nil in case of error.
 //
-// The CNAME record is ignored.
+// The other record types are ignored.
 func QueryA(name string) ([]net.IP, error) {
 
 	a, err := Query(name, TypeA)
@@ -29,6 +29,41 @@ func QueryA(name string) ([]net.IP, error) {
 			r = append(r, v.A)
 		case *dns.CNAME:
 			// Ignore CNAME
+			continue
+		case *dns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
+	}
+
+	return r, nil
+}
+
+// QueryA returns a slice of net.IP. Use server s to query.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func QueryAServer(name string, s string) ([]net.IP, error) {
+
+	a, err := QueryServer(name, TypeA, s)
+	if err != nil {
+		return nil, err
+	}
+
+	r := make([]net.IP, 0)
+
+	for i := range a {
+
+		switch v := a[i].(type) {
+		case *dns.A:
+			r = append(r, v.A)
+		case *dns.CNAME:
+			// Ignore CNAME
+			continue
+		case *dns.DNAME:
+			// Ignore DNAME
 			continue
 		default:
 			return nil, fmt.Errorf("unknown type: %T", v)
@@ -48,7 +83,7 @@ func QueryARetry(name string) ([]net.IP, error) {
 
 	for i := 0; i < MaxRetries; i++ {
 
-		r, err = QueryA(name)
+		r, err = QueryAServer(name, getServer(i))
 		if err == nil {
 			return r, nil
 		}

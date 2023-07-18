@@ -46,6 +46,29 @@ func QuerySOA(name string) (*SOA, error) {
 	return &SOA{Mname: v.Ns, Rname: v.Mbox, Serial: int(v.Serial), Refresh: int(v.Refresh), Retry: int(v.Retry), Expire: int(v.Expire), MinTTL: int(v.Minttl)}, err
 }
 
+// QuerySOAServer returns the answer as a SOA struct.
+// The returned *SOA **cant be nil** if error is nil.
+// Returns nil in case of error.
+func QuerySOAServer(name string, s string) (*SOA, error) {
+
+	a, err := QueryServer(name, TypeSOA, s)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(a) != 1 {
+		return nil, fmt.Errorf("invalid answer: %#v", a)
+	}
+
+	v, ok := a[0].(*dns.SOA)
+
+	if !ok {
+		return nil, fmt.Errorf("invalid answer: %#v", a)
+	}
+
+	return &SOA{Mname: v.Ns, Rname: v.Mbox, Serial: int(v.Serial), Refresh: int(v.Refresh), Retry: int(v.Retry), Expire: int(v.Expire), MinTTL: int(v.Minttl)}, err
+}
+
 // QuerySOARetry query for SOA record and retry for MaxRetries times if an error occured.
 func QuerySOARetry(name string) (*SOA, error) {
 
@@ -56,7 +79,7 @@ func QuerySOARetry(name string) (*SOA, error) {
 
 	for i := 0; i < MaxRetries; i++ {
 
-		r, err = QuerySOA(name)
+		r, err = QuerySOAServer(name, getServer(i))
 		if err == nil {
 			return r, nil
 		}

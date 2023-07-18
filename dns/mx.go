@@ -36,6 +36,39 @@ func QueryMX(name string) ([]MX, error) {
 		case *dns.CNAME:
 			// Ignore CNAME
 			continue
+		case *dns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
+	}
+
+	return r, nil
+}
+
+// QueryMXServer returns a slice of MX struct. Use server s to query.
+// Returns nil in case of error.
+func QueryMXServer(name string, s string) ([]MX, error) {
+
+	a, err := QueryServer(name, TypeMX, s)
+	if err != nil {
+		return nil, err
+	}
+
+	r := make([]MX, 0)
+
+	for i := range a {
+
+		switch v := a[i].(type) {
+		case *dns.MX:
+			r = append(r, MX{Preference: int(v.Preference), Exchange: v.Mx})
+		case *dns.CNAME:
+			// Ignore CNAME
+			continue
+		case *dns.DNAME:
+			// Ignore DNAME
+			continue
 		default:
 			return nil, fmt.Errorf("unknown type: %T", v)
 		}
@@ -54,7 +87,7 @@ func QueryMXRetry(name string) ([]MX, error) {
 
 	for i := 0; i < MaxRetries; i++ {
 
-		r, err = QueryMX(name)
+		r, err = QueryMXServer(name, getServer(i))
 		if err == nil {
 			return r, nil
 		}

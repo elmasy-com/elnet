@@ -38,6 +38,39 @@ func QuerySRV(name string) ([]SRV, error) {
 		case *dns.CNAME:
 			// Ignore CNAME
 			continue
+		case *dns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
+	}
+
+	return r, err
+}
+
+// QuerySRVServer returns the answer as a slice os SRV. Use server s to query.
+// Returns nil in case of error.
+func QuerySRVServer(name string, s string) ([]SRV, error) {
+
+	a, err := QueryServer(name, TypeSRV, s)
+	if err != nil {
+		return nil, err
+	}
+
+	r := make([]SRV, 0)
+
+	for i := range a {
+
+		switch v := a[i].(type) {
+		case *dns.SRV:
+			r = append(r, SRV{Priority: int(v.Priority), Weight: int(v.Weight), Port: int(v.Port), Target: v.Target})
+		case *dns.CNAME:
+			// Ignore CNAME
+			continue
+		case *dns.DNAME:
+			// Ignore DNAME
+			continue
 		default:
 			return nil, fmt.Errorf("unknown type: %T", v)
 		}
@@ -56,7 +89,7 @@ func QuerySRVRetry(name string) ([]SRV, error) {
 
 	for i := 0; i < MaxRetries; i++ {
 
-		r, err = QuerySRV(name)
+		r, err = QuerySRVServer(name, getServer(i))
 		if err == nil {
 			return r, nil
 		}

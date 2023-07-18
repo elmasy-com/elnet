@@ -24,6 +24,36 @@ func QueryCNAME(name string) ([]string, error) {
 		switch v := a[i].(type) {
 		case *dns.CNAME:
 			r = append(r, v.Target)
+		case *dns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
+	}
+
+	return r, nil
+}
+
+// QueryCNAMEServer returns the answer as a string slice. Use server s to query.
+// Returns nil in case of error.
+func QueryCNAMEServer(name string, s string) ([]string, error) {
+
+	a, err := QueryServer(name, TypeCNAME, s)
+	if err != nil {
+		return nil, err
+	}
+
+	r := make([]string, 0)
+
+	for i := range a {
+
+		switch v := a[i].(type) {
+		case *dns.CNAME:
+			r = append(r, v.Target)
+		case *dns.DNAME:
+			// Ignore DNAME
+			continue
 		default:
 			return nil, fmt.Errorf("unknown type: %T", v)
 		}
@@ -42,7 +72,7 @@ func QueryCNAMERetry(name string) ([]string, error) {
 
 	for i := 0; i < MaxRetries; i++ {
 
-		r, err = QueryCNAME(name)
+		r, err = QueryCNAMEServer(name, getServer(i))
 		if err == nil {
 			return r, nil
 		}
