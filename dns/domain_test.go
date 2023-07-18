@@ -453,3 +453,56 @@ func BenchmarkGetSub(b *testing.B) {
 		GetSub("test.s3.dualstack.ap-northeast-2.amazonaws.com.")
 	}
 }
+
+func TestHasSub(t *testing.T) {
+
+	// 1. element = test string
+	// 2. element = wanted result
+	cases := []struct {
+		Value  string
+		Result bool
+	}{
+		{"", false},
+		{".", false},
+		{".cromulent", false},
+		{"a.0emm.com", true}, // a.0emm.com is a TLD as per publicsuffix
+		{"0emm.com", false},  // 0emm.com is not a TLD, only *.0emm.com
+		{"amazon.co.uk", false},
+		{"books.amazon.co.uk", true},
+		{"amazon.com", false},
+		{"example0.debian.net", true},
+		{"example1.debian.org", true},
+		{"golang.dev", false},
+		{"golang.net", false},
+		{"play.golang.org", true},
+		{"gophers.in.space.museum", true},
+		{"b.c.d.0emm.com", true},
+		{"there.is.no.such-tld", true},
+		{"foo.org", false},
+		{"foo.co.uk", false},
+		{"foo.dyndns.org", true},
+		{"www.foo.dyndns.org", true},
+		{"foo.blogspot.co.uk", true},
+		{"www.foo.blogspot.co.uk", true},
+		{"test.com.test.com", true},
+		{"test.com.", false},
+		{"test.com.test.com.", true},
+		{"s3.ca-central-1.amazonaws.com", true},
+		{"www.test.r.appspot.com", true},
+		{"test.blogspot.com", true},
+	}
+
+	for i := range cases {
+		r := HasSub(cases[i].Value)
+		if r != cases[i].Result {
+			t.Fatalf("Case: %s, want: %v, got: %v\n", cases[i].Value, cases[i].Result, r)
+		}
+	}
+}
+
+func BenchmarkHasSub(b *testing.B) {
+
+	for i := 0; i < b.N; i++ {
+		HasSub("test.s3.dualstack.ap-northeast-2.amazonaws.com.")
+	}
+}

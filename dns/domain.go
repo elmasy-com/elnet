@@ -315,3 +315,13 @@ func GetSub(d string) string {
 
 	return d[:i-1]
 }
+
+// HasSub returns whether domain d has a subdomain.
+func HasSub(d string) bool {
+
+	if strings.Count(d, ".") < 2 {
+		return false
+	}
+
+	return GetSub(d) != ""
+}
