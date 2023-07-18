@@ -11,7 +11,7 @@ import (
 
 // Default client configuration.
 //
-// Set in the init() function to read resolv.conf or use Cloudflare + Google.
+// Set in the init() function to read resolv.conf or use Cloudflare + Google + Quad9.
 var Conf *dns.ClientConfig
 
 var Client *dns.Client
@@ -26,28 +26,41 @@ func init() {
 
 	var err error
 
-	Client = &dns.Client{Net: "udp"}
+	UpdateClient("udp", 5*time.Second)
 
 	Conf, err = dns.ClientConfigFromFile("/etc/resolv.conf")
 	if err == nil {
 		return
 	}
 
-	UpdateConf([]string{"1.1.1.1", "1.0.0.1", "8.8.8.8", "8.8.4.4"}, "53")
+	UpdateConf([]string{"1.1.1.1", "1.0.0.1", "8.8.8.8", "8.8.4.4", "9.9.9.10", "149.112.112.10"}, "53")
 }
 
-// getServer used to randomize DNS servers.
-func getServer() string {
+// getServer returns a DNS server to use.
+// If index is between the servers range, returns the selected server.
+// Else, returns a random one.
+//
+// Set index to -1 to get a random one.
+func getServer(index int) string {
 
 	var r string
 
-	switch len(Conf.Servers) {
+	switch l := len(Conf.Servers); l {
 	case 0:
+		// No server is configured
 		r = "1.1.1.1"
 	case 1:
+		// Only ne server
 		r = Conf.Servers[0]
 	default:
-		r = Conf.Servers[rand.Intn(len(Conf.Servers))]
+
+		if index >= 0 && index < l {
+			// If index is between the servers range, return the selected server
+			r = Conf.Servers[index]
+		} else {
+			// If not in range, return a random server
+			r = Conf.Servers[rand.Intn(len(Conf.Servers))]
+		}
 	}
 
 	if identify.IsValidIPv6(r) {
@@ -83,17 +96,17 @@ func UpdateClient(net string, timeout time.Duration) error {
 	return nil
 }
 
-// Generic query for type t.
+// Generic query for type t to server s.
 // Returns the Answer section.
 // In case of error, the answer will be nil and return ErrX or any unknown error.
-func Query(name string, t uint16) ([]dns.RR, error) {
+func QueryServer(name string, t uint16, s string) ([]dns.RR, error) {
 
 	name = dns.Fqdn(name)
 
 	msg := new(dns.Msg)
 	msg.SetQuestion(name, t)
 
-	in, _, err := Client.Exchange(msg, getServer())
+	in, _, err := Client.Exchange(msg, s)
 	if err != nil {
 		return nil, err
 	}
@@ -103,6 +116,14 @@ func Query(name string, t uint16) ([]dns.RR, error) {
 	}
 
 	return nil, RcodeToError(in.Rcode)
+}
+
+// Generic query for type t.
+// Returns the Answer section.
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+func Query(name string, t uint16) ([]dns.RR, error) {
+
+	return QueryServer(name, t, getServer(-1))
 }
 
 // IsSet checks whether a record with type t is set for name.
@@ -120,7 +141,7 @@ func IsSet(name string, t uint16) (bool, error) {
 		msg := new(dns.Msg)
 		msg.SetQuestion(name, t)
 
-		in, _, err = Client.Exchange(msg, getServer())
+		in, _, err = Client.Exchange(msg, getServer(i))
 		if err == nil {
 			break
 		}
