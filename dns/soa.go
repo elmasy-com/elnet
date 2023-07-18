@@ -24,7 +24,7 @@ func (s SOA) String() string {
 }
 
 // QuerySOA returns the answer as a SOA struct.
-// The returned *SOA **cant be nil** if error is nil.
+// The returned *SOA **can be nil** if error is nil.
 // Returns nil in case of error.
 func QuerySOA(name string) (*SOA, error) {
 
@@ -33,7 +33,10 @@ func QuerySOA(name string) (*SOA, error) {
 		return nil, err
 	}
 
-	if len(a) != 1 {
+	if len(a) == 0 {
+		return nil, nil
+	}
+	if len(a) > 1 {
 		return nil, fmt.Errorf("invalid answer: %#v", a)
 	}
 
@@ -47,7 +50,7 @@ func QuerySOA(name string) (*SOA, error) {
 }
 
 // QuerySOAServer returns the answer as a SOA struct.
-// The returned *SOA **cant be nil** if error is nil.
+// The returned *SOA **can be nil** if error is nil.
 // Returns nil in case of error.
 func QuerySOAServer(name string, s string) (*SOA, error) {
 
@@ -56,7 +59,10 @@ func QuerySOAServer(name string, s string) (*SOA, error) {
 		return nil, err
 	}
 
-	if len(a) != 1 {
+	if len(a) == 0 {
+		return nil, nil
+	}
+	if len(a) > 1 {
 		return nil, fmt.Errorf("invalid answer: %#v", a)
 	}
 
@@ -86,6 +92,21 @@ func QuerySOARetry(name string) (*SOA, error) {
 	}
 
 	return nil, err
+}
+
+// QuerySOARetry query for SOA record and retry for MaxRetries times if an error occured.
+func QuerySOARetryStr(name string) (string, error) {
+
+	r, err := QuerySOARetry(name)
+	if err != nil {
+		return "", err
+	}
+
+	if r == nil {
+		return "", nil
+	}
+
+	return r.String(), nil
 }
 
 // TODO: Decide if the domain is registered based on the SOA record/root server
