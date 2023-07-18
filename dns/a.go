@@ -41,7 +41,7 @@ func QueryA(name string) ([]net.IP, error) {
 	return r, nil
 }
 
-// QueryA returns a slice of net.IP. Use server s to query.
+// QueryAServer returns a slice of net.IP. Use server s to query.
 // The answer slice will be nil in case of error.
 //
 // The other record types are ignored.
