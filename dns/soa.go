@@ -41,6 +41,9 @@ func QuerySOA(name string) (*SOA, error) {
 		case *dns.CNAME:
 			// Ignore CNAME
 			continue
+		case *dns.DNAME:
+			// Ignore DNAME
+			continue
 		default:
 			return nil, fmt.Errorf("unknown type: %T", v)
 		}
@@ -66,6 +69,9 @@ func QuerySOAServer(name string, s string) (*SOA, error) {
 			return &SOA{Mname: v.Ns, Rname: v.Mbox, Serial: int(v.Serial), Refresh: int(v.Refresh), Retry: int(v.Retry), Expire: int(v.Expire), MinTTL: int(v.Minttl)}, nil
 		case *dns.CNAME:
 			// Ignore CNAME
+			continue
+		case *dns.DNAME:
+			// Ignore DNAME
 			continue
 		default:
 			return nil, fmt.Errorf("unknown type: %T", v)
