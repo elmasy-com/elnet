@@ -4,7 +4,7 @@ import "testing"
 
 func TestIsWildcard(t *testing.T) {
 
-	r, err := IsWildcard("www.example.com")
+	r, err := IsWildcard("www.example.com", TypeA)
 	if err != nil {
 		t.Fatalf("Fail: failed to check if www.example.com is a wildcard: %s\n", err)
 	}
