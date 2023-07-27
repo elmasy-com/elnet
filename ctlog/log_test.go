@@ -2,6 +2,7 @@ package ctlog
 
 import (
 	"strings"
+	"sync/atomic"
 	"testing"
 )
 
@@ -51,27 +52,26 @@ func TestMaxBatchSize(t *testing.T) {
 
 func TestGetDomains(t *testing.T) {
 
-	var index int64
+	index := new(atomic.Int64)
+	total := 0
 
 	for {
 
-		left, err := NumLeft("https://yeti2025.ct.digicert.com/log/", index)
-		if err != nil {
-			t.Fatalf("FAIL: %s\n", err)
-		}
-
-		t.Logf("Index: %d, Left: %d\n", index, left)
-
-		if left == 0 {
+		if index.Load() > 10000 {
 			break
 		}
 
-		_, n, err := GetDomains("https://yeti2025.ct.digicert.com/log/", index)
+		t.Logf("index: %d, total: %d\n", index.Load(), total)
+
+		r, err := GetDomains("https://ct.googleapis.com/logs/argon2022/", index)
 		if err != nil {
 			t.Fatalf("FAIL: %s\n", err)
 		}
 
-		index += n
+		total += len(r)
 
 	}
+
+	t.Logf("index: %d, total: %d\n", index.Load(), total)
+
 }

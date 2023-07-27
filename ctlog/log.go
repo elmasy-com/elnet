@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync/atomic"
 
 	"github.com/elmasy-com/elnet/dns"
 	"github.com/elmasy-com/slices"
@@ -108,32 +109,34 @@ func MaxBatchSize(url string) (int64, error) {
 	return int64(len(resp.Entries)), nil
 }
 
-// GetDomains returns the domains parsed from the log.
+// GetDomains returns the domains parsed from the log's certificates.
 // start is the start index and fetch as many log entries as possible with one query.
-// The returned int is the number of log entries fetched/parsed.
-func GetDomains(url string, start int64) ([]string, int64, error) {
+// The start index is increased with the number of successfully parsed log entry (the index will contains the new index number after the query).
+//
+// This function use IsValid() adn append only the unique entries.
+func GetDomains(url string, start *atomic.Int64) ([]string, error) {
 
 	c, err := client.New(url, http.DefaultClient, jsonclient.Options{})
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to create client: %w", err)
+		return nil, fmt.Errorf("failed to create client: %w", err)
 	}
 
-	resp, err := c.GetRawEntries(context.TODO(), start, 10000)
+	resp, err := c.GetRawEntries(context.TODO(), start.Load(), 10000)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to get raw entries: %w", err)
+		return nil, fmt.Errorf("failed to get raw entries: %w", err)
 	}
 
-	r := make([]string, 0)
-	var n int64
+	r := make([]string, 0, len(resp.Entries))
 
 	for i := range resp.Entries {
 
-		e, err := gct.LogEntryFromLeaf(int64(i), &resp.Entries[i])
+		// index for LogEntryFromLeaf() doenst matter, use 0.
+		e, err := gct.LogEntryFromLeaf(0, &resp.Entries[i])
 		if err != nil {
-			return nil, 0, fmt.Errorf("failed to convert leaf entry to log: %w", err)
+			return nil, fmt.Errorf("failed to convert leaf entry to log: %w", err)
 		}
 
-		n++
+		start.Add(1)
 
 		if e.X509Cert != nil {
 
@@ -186,5 +189,5 @@ func GetDomains(url string, start int64) ([]string, int64, error) {
 		}
 	}
 
-	return r, n, nil
+	return r, nil
 }
