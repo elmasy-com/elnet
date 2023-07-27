@@ -26,7 +26,7 @@ func init() {
 
 	var err error
 
-	UpdateClient("udp", 5*time.Second)
+	UpdateClient("udp", 2*time.Second)
 
 	Conf, err = dns.ClientConfigFromFile("/etc/resolv.conf")
 	if err == nil {
