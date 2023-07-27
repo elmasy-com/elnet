@@ -120,7 +120,7 @@ func GetDomains(url string, start int64) ([]string, int64, error) {
 		return nil, 0, fmt.Errorf("failed to create client: %w", err)
 	}
 
-	resp, err := c.GetRawEntries(context.TODO(), start, 10000)
+	resp, err := c.GetRawEntries(context.TODO(), start, start+10000)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to get raw entries: %w", err)
 	}
