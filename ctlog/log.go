@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"sync/atomic"
 
 	"github.com/elmasy-com/elnet/dns"
 	"github.com/elmasy-com/slices"
@@ -111,21 +110,22 @@ func MaxBatchSize(url string) (int64, error) {
 
 // GetDomains returns the domains parsed from the log's certificates.
 // start is the start index and fetch as many log entries as possible with one query.
-// The start index is increased with the number of successfully parsed log entry (the index will contains the new index number after the query).
+// The returned int64 counts the number of parsed log entries.
 //
-// This function use IsValid() adn append only the unique entries.
-func GetDomains(url string, start *atomic.Int64) ([]string, error) {
+// This function use IsValid() and append only the unique entries.
+func GetDomains(url string, start int64) ([]string, int64, error) {
 
 	c, err := client.New(url, http.DefaultClient, jsonclient.Options{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create client: %w", err)
+		return nil, 0, fmt.Errorf("failed to create client: %w", err)
 	}
 
-	resp, err := c.GetRawEntries(context.TODO(), start.Load(), 10000)
+	resp, err := c.GetRawEntries(context.TODO(), start, 10000)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get raw entries: %w", err)
+		return nil, 0, fmt.Errorf("failed to get raw entries: %w", err)
 	}
 
+	var n int64
 	r := make([]string, 0, len(resp.Entries))
 
 	for i := range resp.Entries {
@@ -133,10 +133,10 @@ func GetDomains(url string, start *atomic.Int64) ([]string, error) {
 		// index for LogEntryFromLeaf() doenst matter, use 0.
 		e, err := gct.LogEntryFromLeaf(0, &resp.Entries[i])
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert leaf entry to log: %w", err)
+			return r, n, fmt.Errorf("failed to convert leaf entry to log: %w", err)
 		}
 
-		start.Add(1)
+		n++
 
 		if e.X509Cert != nil {
 
@@ -189,5 +189,5 @@ func GetDomains(url string, start *atomic.Int64) ([]string, error) {
 		}
 	}
 
-	return r, nil
+	return r, n, nil
 }

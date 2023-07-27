@@ -63,10 +63,12 @@ func TestGetDomains(t *testing.T) {
 
 		t.Logf("index: %d, total: %d\n", index.Load(), total)
 
-		r, err := GetDomains("https://ct.googleapis.com/logs/argon2022/", index)
+		r, n, err := GetDomains("https://ct.googleapis.com/logs/argon2022/", index.Load())
 		if err != nil {
 			t.Fatalf("FAIL: %s\n", err)
 		}
+
+		index.Add(n)
 
 		total += len(r)
 
