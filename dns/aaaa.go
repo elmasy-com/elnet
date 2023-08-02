@@ -1,6 +1,7 @@
 package dns
 
 import (
+	"errors"
 	"fmt"
 	"net"
 
@@ -74,6 +75,8 @@ func QueryAAAAServer(name string, s string) ([]net.IP, error) {
 }
 
 // QueryAAAARetry query for AAAA record and retry for MaxRetries times if an error occured.
+//
+// NXDOMAIN is not count as an error!
 func QueryAAAARetry(name string) ([]net.IP, error) {
 
 	var (
@@ -84,8 +87,8 @@ func QueryAAAARetry(name string) ([]net.IP, error) {
 	for i := 0; i < MaxRetries; i++ {
 
 		r, err = QueryAAAAServer(name, getServer(i))
-		if err == nil {
-			return r, nil
+		if err == nil || errors.Is(err, ErrName) {
+			return r, err
 		}
 	}
 

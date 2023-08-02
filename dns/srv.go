@@ -1,6 +1,7 @@
 package dns
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/miekg/dns"
@@ -80,6 +81,8 @@ func QuerySRVServer(name string, s string) ([]SRV, error) {
 }
 
 // QuerySRVRetry query for SRV record and retry for MaxRetries times if an error occured.
+//
+// NXDOMAIN is not count as an error!
 func QuerySRVRetry(name string) ([]SRV, error) {
 
 	var (
@@ -90,8 +93,8 @@ func QuerySRVRetry(name string) ([]SRV, error) {
 	for i := 0; i < MaxRetries; i++ {
 
 		r, err = QuerySRVServer(name, getServer(i))
-		if err == nil {
-			return r, nil
+		if err == nil || errors.Is(err, ErrName) {
+			return r, err
 		}
 	}
 

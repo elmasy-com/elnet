@@ -1,6 +1,7 @@
 package dns
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/miekg/dns"
@@ -82,6 +83,8 @@ func QuerySOAServer(name string, s string) (*SOA, error) {
 }
 
 // QuerySOARetry query for SOA record and retry for MaxRetries times if an error occured.
+//
+// NXDOMAIN is not count as an error!
 func QuerySOARetry(name string) (*SOA, error) {
 
 	var (
@@ -92,8 +95,8 @@ func QuerySOARetry(name string) (*SOA, error) {
 	for i := 0; i < MaxRetries; i++ {
 
 		r, err = QuerySOAServer(name, getServer(i))
-		if err == nil {
-			return r, nil
+		if err == nil || errors.Is(err, ErrName) {
+			return r, err
 		}
 	}
 

@@ -1,6 +1,7 @@
 package dns
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/miekg/dns"
@@ -79,6 +80,8 @@ func QueryCAAServer(name string, s string) ([]CAA, error) {
 }
 
 // QueryCAARetry query for CAA record and retry for MaxRetries times if an error occured.
+//
+// NXDOMAIN is not count as an error!
 func QueryCAARetry(name string) ([]CAA, error) {
 
 	var (
@@ -89,8 +92,8 @@ func QueryCAARetry(name string) ([]CAA, error) {
 	for i := 0; i < MaxRetries; i++ {
 
 		r, err = QueryCAAServer(name, getServer(i))
-		if err == nil {
-			return r, nil
+		if err == nil || errors.Is(err, ErrName) {
+			return r, err
 		}
 	}
 

@@ -1,6 +1,7 @@
 package dns
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/miekg/dns"
@@ -69,6 +70,8 @@ func QueryTXTServer(name string, s string) ([]string, error) {
 }
 
 // QueryTXTRetry query for TXT record and retry for MaxRetries times if an error occured.
+//
+// NXDOMAIN is not count as an error!
 func QueryTXTRetry(name string) ([]string, error) {
 
 	var (
@@ -79,8 +82,8 @@ func QueryTXTRetry(name string) ([]string, error) {
 	for i := 0; i < MaxRetries; i++ {
 
 		r, err = QueryTXTServer(name, getServer(i))
-		if err == nil {
-			return r, nil
+		if err == nil || errors.Is(err, ErrName) {
+			return r, err
 		}
 	}
 
