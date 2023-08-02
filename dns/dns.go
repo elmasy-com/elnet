@@ -252,3 +252,31 @@ func IsExists(name string) (bool, error) {
 
 	return setSRV, nil
 }
+
+func TypeToString(t uint16) string {
+
+	switch t {
+	case TypeA:
+		return "A"
+	case TypeAAAA:
+		return "AAAA"
+	case TypeCAA:
+		return "CAA"
+	case TypeCNAME:
+		return "CNAME"
+	case TypeDNAME:
+		return "DNAME"
+	case TypeMX:
+		return "MX"
+	case TypeNS:
+		return "NS"
+	case TypeSOA:
+		return "SOA"
+	case TypeSRV:
+		return "SRV"
+	case TypeTXT:
+		return "TXT"
+	default:
+		return "unknown"
+	}
+}
