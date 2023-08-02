@@ -26,14 +26,14 @@ func init() {
 
 	var err error
 
-	UpdateClient("udp", 2*time.Second)
+	UpdateClient("udp", 1*time.Second)
 
 	Conf, err = dns.ClientConfigFromFile("/etc/resolv.conf")
 	if err == nil {
 		return
 	}
 
-	UpdateConf([]string{"1.1.1.1", "1.0.0.1", "8.8.8.8", "8.8.4.4", "9.9.9.10", "149.112.112.10"}, "53")
+	UpdateConfCommon()
 }
 
 // getServer returns a DNS server to use.
@@ -83,6 +83,19 @@ func UpdateConf(servers []string, port string) {
 	Conf.Attempts = 2
 }
 
+// Create a new ClientConfig for Conf using the common DNS servers (Google + Cloudflare + Quad9).
+func UpdateConfCommon() {
+
+	Conf = new(dns.ClientConfig)
+
+	Conf.Servers = []string{"8.8.8.8", "1.1.1.1", "9.9.9.10", "1.0.0.1", "8.8.4.4", "149.112.112.10"}
+	Conf.Search = make([]string, 0)
+	Conf.Port = "53"
+	Conf.Ndots = 1
+	Conf.Timeout = 5
+	Conf.Attempts = 2
+}
+
 // Create a new Client for default client.
 // net must be "udp", "tcp" or "tcp-tls".
 func UpdateClient(net string, timeout time.Duration) error {
@@ -127,7 +140,7 @@ func Query(name string, t uint16) ([]dns.RR, error) {
 }
 
 // IsSet checks whether a record with type t is set for name.
-// This function retries the query in case of error up to MaxRetries times.
+// This function retries the query in case of error (**NOT** errors like NXDOMAIN) up to MaxRetries times.
 // NXDOMAIN is not an error here, because it means "not found".
 func IsSet(name string, t uint16) (bool, error) {
 
