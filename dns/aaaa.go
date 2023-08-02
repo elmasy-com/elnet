@@ -84,7 +84,7 @@ func QueryAAAARetry(name string) ([]net.IP, error) {
 		err error    = ErrInvalidMaxRetries
 	)
 
-	for i := 0; i < MaxRetries; i++ {
+	for i := -1; i < MaxRetries-1; i++ {
 
 		r, err = QueryAAAAServer(name, getServer(i))
 		if err == nil || errors.Is(err, ErrName) {

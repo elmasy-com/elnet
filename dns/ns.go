@@ -79,7 +79,7 @@ func QueryNSRetry(name string) ([]string, error) {
 		err error    = ErrInvalidMaxRetries
 	)
 
-	for i := 0; i < MaxRetries; i++ {
+	for i := -1; i < MaxRetries-1; i++ {
 
 		r, err = QueryNSServer(name, getServer(i))
 		if err == nil || errors.Is(err, ErrName) {

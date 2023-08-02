@@ -88,7 +88,7 @@ func QueryMXRetry(name string) ([]MX, error) {
 		err error = ErrInvalidMaxRetries
 	)
 
-	for i := 0; i < MaxRetries; i++ {
+	for i := -1; i < MaxRetries-1; i++ {
 
 		r, err = QueryMXServer(name, getServer(i))
 		if err == nil || errors.Is(err, ErrName) {
