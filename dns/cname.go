@@ -75,7 +75,7 @@ func QueryCNAMERetry(name string) ([]string, error) {
 
 	for i := -1; i < MaxRetries-1; i++ {
 
-		r, err = QueryCNAMEServer(name, getServer(i))
+		r, err = QueryCNAMEServer(name, GetServer(i))
 		if err == nil || errors.Is(err, ErrName) {
 			return r, err
 		}

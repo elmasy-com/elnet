@@ -36,12 +36,12 @@ func init() {
 	UpdateConfCommon()
 }
 
-// getServer returns a DNS server to use.
+// GetServer returns a DNS server to use.
 // If index is between the servers range, returns the selected server.
-// Else, returns a random one.
+// If index is not between the servers range, returns a random one.
 //
 // Set index to -1 to get a random one.
-func getServer(index int) string {
+func GetServer(index int) string {
 
 	var r string
 
@@ -136,7 +136,7 @@ func QueryServer(name string, t uint16, s string) ([]dns.RR, error) {
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 func Query(name string, t uint16) ([]dns.RR, error) {
 
-	return QueryServer(name, t, getServer(-1))
+	return QueryServer(name, t, GetServer(-1))
 }
 
 // IsSet checks whether a record with type t is set for name.
@@ -154,7 +154,7 @@ func IsSet(name string, t uint16) (bool, error) {
 		msg := new(dns.Msg)
 		msg.SetQuestion(name, t)
 
-		in, _, err = Client.Exchange(msg, getServer(i))
+		in, _, err = Client.Exchange(msg, GetServer(i))
 		if err == nil {
 			break
 		}

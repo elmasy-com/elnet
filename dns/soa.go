@@ -94,7 +94,7 @@ func QuerySOARetry(name string) (*SOA, error) {
 
 	for i := -1; i < MaxRetries-1; i++ {
 
-		r, err = QuerySOAServer(name, getServer(i))
+		r, err = QuerySOAServer(name, GetServer(i))
 		if err == nil || errors.Is(err, ErrName) {
 			return r, err
 		}

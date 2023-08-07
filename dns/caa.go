@@ -91,7 +91,7 @@ func QueryCAARetry(name string) ([]CAA, error) {
 
 	for i := -1; i < MaxRetries-1; i++ {
 
-		r, err = QueryCAAServer(name, getServer(i))
+		r, err = QueryCAAServer(name, GetServer(i))
 		if err == nil || errors.Is(err, ErrName) {
 			return r, err
 		}

@@ -73,7 +73,7 @@ func QueryDNAMERetry(name string) (string, error) {
 
 	for i := -1; i < MaxRetries-1; i++ {
 
-		r, err = QueryDNAMEServer(name, getServer(i))
+		r, err = QueryDNAMEServer(name, GetServer(i))
 		if err == nil || errors.Is(err, ErrName) {
 			return r, err
 		}

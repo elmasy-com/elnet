@@ -81,7 +81,7 @@ func QueryTXTRetry(name string) ([]string, error) {
 
 	for i := -1; i < MaxRetries-1; i++ {
 
-		r, err = QueryTXTServer(name, getServer(i))
+		r, err = QueryTXTServer(name, GetServer(i))
 		if err == nil || errors.Is(err, ErrName) {
 			return r, err
 		}
