@@ -148,9 +148,29 @@ func (s *Server) Server() string {
 	}
 }
 
+func (s *Server) ToTCP() *Server {
+
+	if s.Protocol != "udp" {
+		return nil
+	}
+
+	srv := new(Server)
+
+	srv.Protocol = "tcp"
+	srv.IP = s.IP
+	srv.Port = s.Port
+	srv.family = s.family
+	srv.client = new(mdns.Client)
+	srv.client.Net = "tcp"
+	srv.client.Timeout = s.client.Timeout
+
+	return srv
+}
+
 // Generic query for type t to server s.
 // Returns the Answer section.
 // In case of error, the answer will be nil and return ErrX or any unknown error.
+// If the returned messsage is truncated, create a TCP server from s and retry the query.
 func (s *Server) Query(name string, t uint16) ([]mdns.RR, error) {
 
 	msg := new(mdns.Msg)
@@ -159,6 +179,16 @@ func (s *Server) Query(name string, t uint16) ([]mdns.RR, error) {
 	in, _, err := s.client.Exchange(msg, s.Server())
 	if err != nil {
 		return nil, err
+	}
+
+	if in.Truncated {
+
+		tcpS := s.ToTCP()
+		if tcpS == nil {
+			return nil, ErrTruncated
+		}
+
+		return tcpS.Query(name, t)
 	}
 
 	if in.Rcode == 0 {
