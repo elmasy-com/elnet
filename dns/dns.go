@@ -24,7 +24,7 @@ func init() {
 
 	var err error
 
-	DefaultServers, err = NewServersFromIPs(DefaultMaxRetries, 2*time.Second, "8.8.8.8", "1.1.1.1", "9.9.9.10", "1.0.0.1", "8.8.4.4", "149.112.112.10")
+	DefaultServers, err = NewServersStr(DefaultMaxRetries, 2*time.Second, "8.8.8.8", "1.1.1.1", "9.9.9.10", "1.0.0.1", "8.8.4.4", "149.112.112.10")
 	if err != nil {
 		panic(fmt.Sprintf("Failed to set DefaultServers: %s", err))
 	}

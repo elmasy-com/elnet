@@ -16,9 +16,9 @@ type Servers struct {
 	m          *sync.Mutex
 }
 
-// NewServersFromSlice creates a new Servers from srvs.
+// NewServersSlice creates a new Servers from srvs.
 // Retries is the maximum number retries allowed in TryQuery function.
-func NewServersFromSlice(retries int, srvs ...Server) Servers {
+func NewServersSlice(retries int, srvs ...Server) Servers {
 
 	var sr Servers
 	sr.srvs = make([]Server, 0, len(srvs))
@@ -31,25 +31,26 @@ func NewServersFromSlice(retries int, srvs ...Server) Servers {
 	return sr
 }
 
-// NewServersFromIPs creates a new Servers from srvs. The underlying servers default to "udp" protocol and "53" as port.
+// NewServersStr creates a new Servers from srvs.
+// The protocol must be "udp", "tcp" or "tcp-tls". The ddefault protocol is "udp" and the default port is "53".
 // Retries is the maximum number retries allowed in TryQuery function.
 // Timeout is a cumulative timeout for dial.
-func NewServersFromIPs(retries int, timeout time.Duration, ips ...string) (Servers, error) {
+func NewServersStr(retries int, timeout time.Duration, s ...string) (Servers, error) {
 
-	if len(ips) == 0 {
-		return Servers{}, fmt.Errorf("empty ips")
+	if len(s) == 0 {
+		return Servers{}, fmt.Errorf("servers is empty")
 	}
 
 	var srvs Servers
-	srvs.srvs = make([]Server, 0, len(ips))
+	srvs.srvs = make([]Server, 0, len(s))
 	srvs.m = new(sync.Mutex)
 	srvs.maxRetries = retries
 
-	for i := range ips {
+	for i := range s {
 
-		srv, err := NewServer("udp", ips[i], "53", timeout)
+		srv, err := NewServerStr(s[i], timeout)
 		if err != nil {
-			return srvs, fmt.Errorf("failed to create new server from %s: %w", ips[i], err)
+			return srvs, fmt.Errorf("failed to create new server from %s: %w", s[i], err)
 		}
 
 		srvs.srvs = append(srvs.srvs, srv)

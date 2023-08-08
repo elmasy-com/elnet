@@ -127,7 +127,7 @@ func BenchmarkQueryA(b *testing.B) {
 	// Sleep 2 sec to not overflow the DNS server
 	time.Sleep(2 * time.Second)
 
-	srvs, err := NewServersFromIPs(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		b.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -144,7 +144,7 @@ func BenchmarkQueryAInvalid(b *testing.B) {
 	// Sleep 2 sec to not overflow the DNS server
 	time.Sleep(2 * time.Second)
 
-	srvs, err := NewServersFromIPs(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		b.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -161,7 +161,7 @@ func BenchmarkTryQueryA(b *testing.B) {
 	// Sleep 2 sec to not overflow the DNS server
 	time.Sleep(2 * time.Second)
 
-	srvs, err := NewServersFromIPs(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		b.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -178,7 +178,7 @@ func BenchmarkTryQueryAInvalid(b *testing.B) {
 	// Sleep 2 sec to not overflow the DNS server
 	time.Sleep(2 * time.Second)
 
-	srvs, err := NewServersFromIPs(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		b.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -195,7 +195,7 @@ func BenchmarkIsSetA(b *testing.B) {
 	// Sleep 2 sec to not overflow the DNS server
 	time.Sleep(2 * time.Second)
 
-	srvs, err := NewServersFromIPs(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		b.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -212,7 +212,7 @@ func BenchmarkIsSetAInvalid(b *testing.B) {
 	// Sleep 2 sec to not overflow the DNS server
 	time.Sleep(2 * time.Second)
 
-	srvs, err := NewServersFromIPs(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		b.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}

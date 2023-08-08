@@ -22,7 +22,7 @@ func TestNewServersFromSlice(t *testing.T) {
 		t.Fatalf("FAIL: Failed to create udp://9.9.9.9:53: %s\n", err)
 	}
 
-	srvs := NewServersFromSlice(3, one, two, three)
+	srvs := NewServersSlice(3, one, two, three)
 
 	_, err = srvs.QueryA("example.com")
 	if err != nil {
@@ -32,7 +32,7 @@ func TestNewServersFromSlice(t *testing.T) {
 
 func TestNewServersFromIPs(t *testing.T) {
 
-	srvs, err := NewServersFromIPs(3, 2*time.Second, "8.8.8.8", "1.1.1.1", "9.9.9.9")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		t.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -45,7 +45,7 @@ func TestNewServersFromIPs(t *testing.T) {
 
 func TestNewServersAppend(t *testing.T) {
 
-	srvs, err := NewServersFromIPs(3, 2*time.Second, "8.8.8.8", "1.1.1.1", "9.9.9.9")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		t.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -69,7 +69,7 @@ func TestNewServersAppend(t *testing.T) {
 
 func TestNewServersGet(t *testing.T) {
 
-	srvs, err := NewServersFromIPs(3, 2*time.Second, "8.8.8.8", "1.1.1.1", "9.9.9.9")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		t.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -94,7 +94,7 @@ func TestNewServersGet(t *testing.T) {
 
 func TestNewServersGetMaxRetries(t *testing.T) {
 
-	srvs, err := NewServersFromIPs(3, 2*time.Second, "8.8.8.8", "1.1.1.1", "9.9.9.9")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		t.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -106,7 +106,7 @@ func TestNewServersGetMaxRetries(t *testing.T) {
 
 func TestNewServersSetMaxRetries(t *testing.T) {
 
-	srvs, err := NewServersFromIPs(3, 2*time.Second, "8.8.8.8", "1.1.1.1", "9.9.9.9")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		t.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -124,7 +124,7 @@ func TestNewServersSetMaxRetries(t *testing.T) {
 
 func TestNewServersQuery(t *testing.T) {
 
-	srvs, err := NewServersFromIPs(3, 2*time.Second, "8.8.8.8", "1.1.1.1", "9.9.9.9")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		t.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -141,7 +141,7 @@ func TestNewServersQuery(t *testing.T) {
 
 func TestNewServersTryQuery(t *testing.T) {
 
-	srvs, err := NewServersFromIPs(3, 2*time.Second, "8.8.8.8", "1.1.1.1", "9.9.9.9")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		t.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -158,7 +158,7 @@ func TestNewServersTryQuery(t *testing.T) {
 
 func TestNewServersIsSet(t *testing.T) {
 
-	srvs, err := NewServersFromIPs(3, 2*time.Second, "8.8.8.8", "1.1.1.1", "9.9.9.9")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		t.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}

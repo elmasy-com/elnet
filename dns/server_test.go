@@ -78,7 +78,7 @@ func TestNewServer(t *testing.T) {
 	}
 }
 
-func TestParseServer(t *testing.T) {
+func TestNewServerStr(t *testing.T) {
 
 	cases := []struct {
 		V   string
@@ -91,6 +91,7 @@ func TestParseServer(t *testing.T) {
 		{V: "127.0.0.1:53", S: Server{Protocol: "udp", IP: "127.0.0.1", Port: "53", family: 4}, Err: ""},
 		{V: "udp://127.0.0.1", S: Server{Protocol: "udp", IP: "127.0.0.1", Port: "53", family: 4}, Err: ""},
 		{V: "127.0.0.1", S: Server{Protocol: "udp", IP: "127.0.0.1", Port: "53", family: 4}, Err: ""},
+		{V: "8.8.8.8", S: Server{Protocol: "udp", IP: "8.8.8.8", Port: "53", family: 4}, Err: ""},
 
 		{V: "upd://127.0.0.1:53", S: Server{}, Err: "invalid protocol"},
 		{V: "udp://127.0.0:53", S: Server{}, Err: "invalid ip"},

@@ -54,7 +54,7 @@ func BenchmarkQueryAAAA(b *testing.B) {
 	// Sleep 2 sec to not overflow the DNS server
 	time.Sleep(2 * time.Second)
 
-	srvs, err := NewServersFromIPs(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		b.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -71,7 +71,7 @@ func BenchmarkTryQueryAAAA(b *testing.B) {
 	// Sleep 2 sec to not overflow the DNS server
 	time.Sleep(2 * time.Second)
 
-	srvs, err := NewServersFromIPs(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		b.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -88,7 +88,7 @@ func BenchmarkTryQueryAAAAInvalid(b *testing.B) {
 	// Sleep 2 sec to not overflow the DNS server
 	time.Sleep(2 * time.Second)
 
-	srvs, err := NewServersFromIPs(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		b.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
@@ -105,7 +105,7 @@ func BenchmarkIsSetAAAA(b *testing.B) {
 	// Sleep 2 sec to not overflow the DNS server
 	time.Sleep(2 * time.Second)
 
-	srvs, err := NewServersFromIPs(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
+	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
 	if err != nil {
 		b.Fatalf("FAIL: Failed to create servers: %s\n", err)
 	}
