@@ -58,7 +58,7 @@ func QueryTXT(name string) ([]string, error) {
 	return DefaultServers.QueryTXT(name)
 }
 
-// TryQueryTXT asks the servers for type TXT. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryTXT asks the servers for type TXT. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //
@@ -91,7 +91,7 @@ func (s *Servers) TryQueryTXT(name string) ([]string, error) {
 	return r, nil
 }
 
-// TryQueryTXT asks the DefaultServers for type TXT. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryTXT asks the DefaultServers for type TXT. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //

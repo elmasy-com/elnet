@@ -59,7 +59,7 @@ func QueryAAAA(name string) ([]net.IP, error) {
 	return DefaultServers.QueryAAAA(name)
 }
 
-// TryQueryAAAA asks the servers for type AAAA. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryAAAA asks the servers for type AAAA. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //
@@ -92,7 +92,7 @@ func (s *Servers) TryQueryAAAA(name string) ([]net.IP, error) {
 	return r, nil
 }
 
-// TryQueryAAAA asks the DefaultServers for type A. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryAAAA asks the DefaultServers for type A. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //

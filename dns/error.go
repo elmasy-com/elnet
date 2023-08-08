@@ -19,7 +19,7 @@ var (
 )
 
 // RcodeToError returns the error associated with the rcode.
-// If rcode is unkown, returns rcode.
+// If rcode is unknown, returns rcode.
 func RcodeToError(rcode int) error {
 
 	switch rcode {

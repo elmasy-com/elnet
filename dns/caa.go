@@ -69,7 +69,7 @@ func QueryCAA(name string) ([]CAA, error) {
 	return DefaultServers.QueryCAA(name)
 }
 
-// TryQueryCAA asks the servers for type CAA. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryCAA asks the servers for type CAA. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //
@@ -102,7 +102,7 @@ func (s *Servers) TryQueryCAA(name string) ([]net.IP, error) {
 	return r, nil
 }
 
-// TryQueryCAA asks the DefaultServers for type CAA. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryCAA asks the DefaultServers for type CAA. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //

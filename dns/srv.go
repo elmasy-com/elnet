@@ -69,7 +69,7 @@ func QuerySRV(name string) ([]SRV, error) {
 	return DefaultServers.QuerySRV(name)
 }
 
-// TryQuerySRV asks the servers for type SRV. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQuerySRV asks the servers for type SRV. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //
@@ -102,7 +102,7 @@ func (s *Servers) TryQuerySRV(name string) ([]SRV, error) {
 	return r, nil
 }
 
-// TryQuerySRV asks the DefaultServers for type SRV. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQuerySRV asks the DefaultServers for type SRV. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //

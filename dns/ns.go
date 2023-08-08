@@ -58,7 +58,7 @@ func QueryNS(name string) ([]string, error) {
 	return DefaultServers.QueryNS(name)
 }
 
-// TryQueryNS asks the servers for type NS. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryNS asks the servers for type NS. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //

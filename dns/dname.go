@@ -53,7 +53,7 @@ func QueryDNAME(name string) (string, error) {
 	return DefaultServers.QueryDNAME(name)
 }
 
-// TryQueryDNAME asks the servers for type DNAME. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryDNAME asks the servers for type DNAME. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //
@@ -81,7 +81,7 @@ func (s *Servers) TryQueryDNAME(name string) (string, error) {
 	return "", nil
 }
 
-// TryQueryDNAME asks the DefaultServers for type DNAME. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryDNAME asks the DefaultServers for type DNAME. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //

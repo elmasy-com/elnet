@@ -67,7 +67,7 @@ func QueryMX(name string) ([]MX, error) {
 	return DefaultServers.QueryMX(name)
 }
 
-// TryQueryMX asks the servers for type MX. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryMX asks the servers for type MX. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //
@@ -100,7 +100,7 @@ func (s *Servers) TryQueryMX(name string) ([]MX, error) {
 	return r, nil
 }
 
-// TryQueryMX asks the DefaultServers for type MX. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryMX asks the DefaultServers for type MX. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //

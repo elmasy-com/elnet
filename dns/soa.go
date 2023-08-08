@@ -71,7 +71,7 @@ func QuerySOA(name string) (*SOA, error) {
 	return DefaultServers.QuerySOA(name)
 }
 
-// TryQuerySOA asks the servers for type SOA. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQuerySOA asks the servers for type SOA. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //
@@ -102,7 +102,7 @@ func (s *Servers) TryQuerySOA(name string) (*SOA, error) {
 	return nil, nil
 }
 
-// TryQuerySOA asks the DefaultServers for type SOA. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQuerySOA asks the DefaultServers for type SOA. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //

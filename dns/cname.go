@@ -55,7 +55,7 @@ func QueryCNAME(name string) ([]string, error) {
 	return DefaultServers.QueryCNAME(name)
 }
 
-// TryQueryCNAME asks the servers for type CNAME. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryCNAME asks the servers for type CNAME. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //
@@ -85,7 +85,7 @@ func (s *Servers) TryQueryCNAME(name string) ([]string, error) {
 	return r, nil
 }
 
-// TryQueryCNAME asks the DefaultServers for type CNAME. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryCNAME asks the DefaultServers for type CNAME. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //
