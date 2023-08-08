@@ -6,7 +6,7 @@ func TestQueryCNAME(t *testing.T) {
 
 	r, err := QueryCNAME("autodiscover.elmasy.com")
 	if err != nil {
-		t.Fatalf("TestQueryCNAME failed: %s\n", err)
+		t.Fatalf("FAIL: %s\n", err)
 	}
 
 	for i := range r {
@@ -14,14 +14,26 @@ func TestQueryCNAME(t *testing.T) {
 	}
 }
 
-func TestQueryCNAMERetry(t *testing.T) {
+func TestTryQueryCNAME(t *testing.T) {
 
-	r, err := QueryCNAMERetry("autodiscover.elmasy.com")
+	r, err := TryQueryCNAME("autodiscover.elmasy.com")
 	if err != nil {
-		t.Fatalf("TestQueryCNAMERetry failed: %s\n", err)
+		t.Fatalf("FAIL: %s\n", err)
 	}
 
 	for i := range r {
 		t.Logf("autodiscover.elmasy.com CNAME -> %s\n", r[i])
+	}
+}
+
+func TestIsSetCNAME(t *testing.T) {
+
+	r, err := IsSetCNAME("autodiscover.elmasy.com")
+	if err != nil {
+		t.Fatalf("FAIL: %s\n", err)
+	}
+
+	if !r {
+		t.Fatalf("FAIL: CNAME is not set for autodiscover.elmasy.com\n")
 	}
 }

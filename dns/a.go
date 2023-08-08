@@ -1,37 +1,87 @@
 package dns
 
 import (
-	"errors"
 	"fmt"
 	"net"
 
-	"github.com/miekg/dns"
+	mdns "github.com/miekg/dns"
 )
 
 var TypeA uint16 = 1
 
-// QueryA returns a slice of net.IP.
+// QueryA ask the server and returns a slice of net.IP.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func (s *Server) QueryA(name string) ([]net.IP, error) {
+
+	rr, err := s.Query(name, TypeA)
+	if err != nil {
+		return nil, err
+	}
+
+	r := make([]net.IP, 0, len(rr))
+
+	for i := range rr {
+
+		switch v := rr[i].(type) {
+		case *mdns.A:
+			r = append(r, v.A)
+		case *mdns.CNAME:
+			// Ignore CNAME
+			continue
+		case *mdns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
+	}
+
+	return r, nil
+}
+
+// QueryA ask a random server from servers and returns a slice of net.IP.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func (s *Servers) QueryA(name string) ([]net.IP, error) {
+
+	return s.Get(-1).QueryA(name)
+}
+
+// QueryA ask a random server from DefaultServers and returns a slice of net.IP.
 // The answer slice will be nil in case of error.
 //
 // The other record types are ignored.
 func QueryA(name string) ([]net.IP, error) {
 
-	a, err := Query(name, TypeA)
+	return DefaultServers.QueryA(name)
+}
+
+// TryQueryA asks the servers for type A. If any error occured, retries with next server (except if error is NXDOMAIN).
+//
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+//
+// The first used server is random. The other record types are ignored.
+func (s *Servers) TryQueryA(name string) ([]net.IP, error) {
+
+	rr, err := s.TryQuery(name, TypeA)
 	if err != nil {
 		return nil, err
 	}
 
-	r := make([]net.IP, 0)
+	r := make([]net.IP, 0, len(rr))
 
-	for i := range a {
+	for i := range rr {
 
-		switch v := a[i].(type) {
-		case *dns.A:
+		switch v := rr[i].(type) {
+		case *mdns.A:
 			r = append(r, v.A)
-		case *dns.CNAME:
+		case *mdns.CNAME:
 			// Ignore CNAME
 			continue
-		case *dns.DNAME:
+		case *mdns.DNAME:
 			// Ignore DNAME
 			continue
 		default:
@@ -42,78 +92,24 @@ func QueryA(name string) ([]net.IP, error) {
 	return r, nil
 }
 
-// QueryAServer returns a slice of net.IP. Use server s to query.
-// The answer slice will be nil in case of error.
+// TryQueryA asks the DefaultServers for type A. If any error occured, retries with next server (except if error is NXDOMAIN).
 //
-// The other record types are ignored.
-func QueryAServer(name string, s string) ([]net.IP, error) {
-
-	a, err := QueryServer(name, TypeA, s)
-	if err != nil {
-		return nil, err
-	}
-
-	r := make([]net.IP, 0)
-
-	for i := range a {
-
-		switch v := a[i].(type) {
-		case *dns.A:
-			r = append(r, v.A)
-		case *dns.CNAME:
-			// Ignore CNAME
-			continue
-		case *dns.DNAME:
-			// Ignore DNAME
-			continue
-		default:
-			return nil, fmt.Errorf("unknown type: %T", v)
-		}
-	}
-
-	return r, nil
-}
-
-// QueryARetry query for A record and retry for MaxRetries times if an error occured.
+// In case of error, the answer will be nil and return ErrX or any unknown error.
 //
-// NXDOMAIN is not count as an error!
-func QueryARetry(name string) ([]net.IP, error) {
+// The first used server is random. The other record types are ignored.
+func TryQueryA(name string) ([]net.IP, error) {
 
-	var (
-		r   []net.IP = nil
-		err error    = ErrInvalidMaxRetries
-	)
-
-	for i := -1; i < MaxRetries-1; i++ {
-
-		r, err = QueryAServer(name, GetServer(i))
-		if err == nil || errors.Is(err, ErrName) {
-			return r, err
-		}
-	}
-
-	return nil, err
-}
-
-// QueryARetryStr query for A record and retry for MaxRetries times if an error occured and returns the result as a string slice.
-func QueryARetryStr(name string) ([]string, error) {
-
-	r, err := QueryARetry(name)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]string, 0, len(r))
-
-	for i := range r {
-		result = append(result, r[i].String())
-	}
-
-	return result, nil
+	return DefaultServers.TryQueryA(name)
 }
 
 // IsSetA checks whether an A type record set for name.
 // NXDOMAIN is not an error here, because it means "not found".
+func (s *Servers) IsSetA(name string) (bool, error) {
+	return s.IsSet(name, TypeA)
+}
+
+// IsSetA checks whether an A type record set for name using the DefaultServers.
+// NXDOMAIN is not an error here, because it means "not found".
 func IsSetA(name string) (bool, error) {
-	return IsSet(name, TypeA)
+	return DefaultServers.IsSetA(name)
 }

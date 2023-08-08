@@ -6,7 +6,7 @@ func TestQueryMX(t *testing.T) {
 
 	r, err := QueryMX("elmasy.com")
 	if err != nil {
-		t.Fatalf("TestQueryMX failed: %s\n", err)
+		t.Fatalf("FAIL: %s\n", err)
 	}
 
 	for i := range r {
@@ -14,11 +14,11 @@ func TestQueryMX(t *testing.T) {
 	}
 }
 
-func TestQueryMXRetry(t *testing.T) {
+func TestTryQueryMX(t *testing.T) {
 
-	r, err := QueryMXRetry("elmasy.com")
+	r, err := TryQueryMX("elmasy.com")
 	if err != nil {
-		t.Fatalf("TestQueryMXRetry failed: %s\n", err)
+		t.Fatalf("FAIL: %s\n", err)
 	}
 
 	for i := range r {
@@ -26,14 +26,14 @@ func TestQueryMXRetry(t *testing.T) {
 	}
 }
 
-func TestQueryMXRetryStr(t *testing.T) {
+func TestIsSetMX(t *testing.T) {
 
-	r, err := QueryARetryStr("elmasy.com")
+	r, err := IsSetMX("elmasy.com")
 	if err != nil {
-		t.Fatalf("TestQueryMXRetry failed: %s\n", err)
+		t.Fatalf("FAIL: %s\n", err)
 	}
 
-	for i := range r {
-		t.Logf("elmasy.com MX -> %s\n", r[i])
+	if !r {
+		t.Fatalf("FAIL: MX is not set for elmasy.com\n")
 	}
 }

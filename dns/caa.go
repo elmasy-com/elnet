@@ -1,10 +1,10 @@
 package dns
 
 import (
-	"errors"
 	"fmt"
+	"net"
 
-	"github.com/miekg/dns"
+	mdns "github.com/miekg/dns"
 )
 
 var TypeCAA uint16 = 257
@@ -19,106 +19,107 @@ func (c CAA) String() string {
 	return fmt.Sprintf("%d %s %s", c.Flag, c.Tag, c.Value)
 }
 
-// QueryCAA returns a slice of net.IP.
+// QueryCAA ask the server and returns a slice of CAA.
 // The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func (s *Server) QueryCAA(name string) ([]CAA, error) {
+
+	rr, err := s.Query(name, TypeCAA)
+	if err != nil {
+		return nil, err
+	}
+
+	r := make([]CAA, 0, len(rr))
+
+	for i := range rr {
+
+		switch v := rr[i].(type) {
+		case *mdns.CAA:
+			r = append(r, CAA{Flag: v.Flag, Tag: v.Tag, Value: v.Value})
+		case *mdns.CNAME:
+			// Ignore CNAME
+			continue
+		case *mdns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
+	}
+
+	return r, nil
+}
+
+// QueryCAA ask a random server from servers and returns a slice of CAA.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func (s *Servers) QueryCAA(name string) ([]CAA, error) {
+
+	return s.Get(-1).QueryCAA(name)
+}
+
+// QueryCAA ask a random server from DefaultServers and returns a slice of CAA.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
 func QueryCAA(name string) ([]CAA, error) {
 
-	a, err := Query(name, TypeCAA)
-	if err != nil {
-		return nil, err
-	}
-
-	r := make([]CAA, 0)
-
-	for i := range a {
-
-		switch v := a[i].(type) {
-		case *dns.CAA:
-			r = append(r, CAA{Flag: v.Flag, Tag: v.Tag, Value: v.Value})
-		case *dns.CNAME:
-			// Ignore CNAME
-			continue
-		case *dns.DNAME:
-			// Ignore DNAME
-			continue
-		default:
-			return nil, fmt.Errorf("unknown type: %T", v)
-		}
-	}
-
-	return r, nil
+	return DefaultServers.QueryCAA(name)
 }
 
-// QueryCAAServer returns a slice of net.IP. Use server s to query.
-// The answer slice will be nil in case of error.
-func QueryCAAServer(name string, s string) ([]CAA, error) {
-
-	a, err := QueryServer(name, TypeCAA, s)
-	if err != nil {
-		return nil, err
-	}
-
-	r := make([]CAA, 0)
-
-	for i := range a {
-
-		switch v := a[i].(type) {
-		case *dns.CAA:
-			r = append(r, CAA{Flag: v.Flag, Tag: v.Tag, Value: v.Value})
-		case *dns.CNAME:
-			// Ignore CNAME
-			continue
-		case *dns.DNAME:
-			// Ignore DNAME
-			continue
-		default:
-			return nil, fmt.Errorf("unknown type: %T", v)
-		}
-	}
-
-	return r, nil
-}
-
-// QueryCAARetry query for CAA record and retry for MaxRetries times if an error occured.
+// TryQueryCAA asks the servers for type CAA. If any error occured, retries with next server (except if error is NXDOMAIN).
 //
-// NXDOMAIN is not count as an error!
-func QueryCAARetry(name string) ([]CAA, error) {
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+//
+// The first used server is random. The other record types are ignored.
+func (s *Servers) TryQueryCAA(name string) ([]net.IP, error) {
 
-	var (
-		r   []CAA = nil
-		err error = ErrInvalidMaxRetries
-	)
-
-	for i := -1; i < MaxRetries-1; i++ {
-
-		r, err = QueryCAAServer(name, GetServer(i))
-		if err == nil || errors.Is(err, ErrName) {
-			return r, err
-		}
-	}
-
-	return nil, err
-}
-
-// QueryCAARetryStr query for CAA record and retry for MaxRetries times if an error occured and returns the result as a string slice.
-func QueryCAARetryStr(name string) ([]string, error) {
-
-	r, err := QueryCAARetry(name)
+	rr, err := s.TryQuery(name, TypeCAA)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]string, 0, len(r))
+	r := make([]net.IP, 0, len(rr))
 
-	for i := range r {
-		result = append(result, r[i].String())
+	for i := range rr {
+
+		switch v := rr[i].(type) {
+		case *mdns.A:
+			r = append(r, v.A)
+		case *mdns.CNAME:
+			// Ignore CNAME
+			continue
+		case *mdns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
 	}
 
-	return result, nil
+	return r, nil
 }
 
-// IsSetCAA checks whether an A type record set for name.
+// TryQueryCAA asks the DefaultServers for type CAA. If any error occured, retries with next server (except if error is NXDOMAIN).
+//
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+//
+// The first used server is random. The other record types are ignored.
+func TryQueryCAA(name string) ([]net.IP, error) {
+
+	return DefaultServers.TryQueryA(name)
+}
+
+// IsSetCAA checks whether a CAA type record set for name.
+// NXDOMAIN is not an error here, because it means "not found".
+func (s *Servers) IsSetCAA(name string) (bool, error) {
+	return s.IsSet(name, TypeCAA)
+}
+
+// IsSetCAA checks whether a CAA type record set for name using the DefaultServers.
 // NXDOMAIN is not an error here, because it means "not found".
 func IsSetCAA(name string) (bool, error) {
-	return IsSet(name, TypeCAA)
+	return DefaultServers.IsSetCAA(name)
 }

@@ -1,31 +1,77 @@
 package dns
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/miekg/dns"
+	mdns "github.com/miekg/dns"
 )
 
 var TypeDNAME uint16 = 39
 
-// QueryDNAME returns the target string.
+// QueryDNAME ask the server and returns the target string.
+// The answer slice will be nil in case of error.
 //
-// The other records are ignored.
+// The other record types are ignored.
+func (s *Server) QueryDNAME(name string) (string, error) {
+
+	rr, err := s.Query(name, TypeDNAME)
+	if err != nil {
+		return "", err
+	}
+
+	for i := range rr {
+
+		switch v := rr[i].(type) {
+		case *mdns.DNAME:
+			return v.Target, nil
+		case *mdns.CNAME:
+			// Ignore CNAME
+			continue
+		default:
+			return "", fmt.Errorf("unknown type: %T", v)
+		}
+	}
+
+	return "", nil
+}
+
+// QueryDNAME ask a random server from servers and returns the target string.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func (s *Servers) QueryDNAME(name string) (string, error) {
+
+	return s.Get(-1).QueryDNAME(name)
+}
+
+// QueryDNAME ask a random server from DefaultServers and returns the target of string.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
 func QueryDNAME(name string) (string, error) {
 
-	a, err := Query(name, TypeDNAME)
+	return DefaultServers.QueryDNAME(name)
+}
+
+// TryQueryDNAME asks the servers for type DNAME. If any error occured, retries with next server (except if error is NXDOMAIN).
+//
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+//
+// The first used server is random. The other record types are ignored.
+func (s *Servers) TryQueryDNAME(name string) (string, error) {
+
+	rr, err := s.TryQuery(name, TypeDNAME)
 	if err != nil {
 		return "", err
 	}
 
-	for i := range a {
+	for i := range rr {
 
-		switch v := a[i].(type) {
-		case *dns.DNAME:
+		switch v := rr[i].(type) {
+		case *mdns.DNAME:
 			return v.Target, nil
-		case *dns.CNAME:
-			// Ignore CNAME
+		case *mdns.CNAME:
+			// Ignore DNAME
 			continue
 		default:
 			return "", fmt.Errorf("unknown type: %T", v)
@@ -35,55 +81,24 @@ func QueryDNAME(name string) (string, error) {
 	return "", nil
 }
 
-// QueryDNAMEServer returns the target string. USe server s to query.
+// TryQueryDNAME asks the DefaultServers for type DNAME. If any error occured, retries with next server (except if error is NXDOMAIN).
 //
-// The other records are ignored.
-func QueryDNAMEServer(name string, s string) (string, error) {
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+//
+// The first used server is random. The other record types are ignored.
+func TryQueryDNAME(name string) (string, error) {
 
-	a, err := QueryServer(name, TypeDNAME, s)
-	if err != nil {
-		return "", err
-	}
-
-	for i := range a {
-
-		switch v := a[i].(type) {
-		case *dns.DNAME:
-			return v.Target, nil
-		case *dns.CNAME:
-			// Ignore CNAME
-			continue
-		default:
-			return "", fmt.Errorf("unknown type: %T", v)
-		}
-	}
-
-	return "", nil
+	return DefaultServers.TryQueryDNAME(name)
 }
 
-// QueryDNAMERetry query for DNAME record and retry for MaxRetries times if an error occured.
-//
-// NXDOMAIN is not count as an error!
-func QueryDNAMERetry(name string) (string, error) {
-
-	var (
-		r   string
-		err error = ErrInvalidMaxRetries
-	)
-
-	for i := -1; i < MaxRetries-1; i++ {
-
-		r, err = QueryDNAMEServer(name, GetServer(i))
-		if err == nil || errors.Is(err, ErrName) {
-			return r, err
-		}
-	}
-
-	return "", err
+// IsSetDNAME checks whether an DNAME type record set for name.
+// NXDOMAIN is not an error here, because it means "not found".
+func (s *Servers) IsSetDNAME(name string) (bool, error) {
+	return s.IsSet(name, TypeDNAME)
 }
 
-// IsSetA checks whether an A type record set for name.
+// IsSetCNAME checks whether an DNAME type record set for name using the DefaultServers.
 // NXDOMAIN is not an error here, because it means "not found".
 func IsSetDNAME(name string) (bool, error) {
-	return IsSet(name, TypeDNAME)
+	return DefaultServers.IsSetDNAME(name)
 }

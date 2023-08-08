@@ -1,10 +1,9 @@
 package dns
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/miekg/dns"
+	mdns "github.com/miekg/dns"
 )
 
 var TypeSOA uint16 = 6
@@ -24,98 +23,105 @@ func (s SOA) String() string {
 	return fmt.Sprintf("%s %s %d %d %d %d %d", s.Mname, s.Rname, s.Serial, s.Refresh, s.Retry, s.Expire, s.MinTTL)
 }
 
-// QuerySOA returns the answer as a SOA struct.
-// The returned *SOA **can be nil**.
-// Returns nil in case of error.
+// QuerySOA ask the server and returns a SOA struct pointer.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func (s *Server) QuerySOA(name string) (*SOA, error) {
+
+	rr, err := s.Query(name, TypeSOA)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range rr {
+
+		switch v := rr[i].(type) {
+		case *mdns.SOA:
+			return &SOA{Mname: v.Ns, Rname: v.Mbox, Serial: int(v.Serial), Refresh: int(v.Refresh), Retry: int(v.Retry), Expire: int(v.Expire), MinTTL: int(v.Minttl)}, nil
+		case *mdns.CNAME:
+			// Ignore CNAME
+			continue
+		case *mdns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
+	}
+
+	return nil, nil
+}
+
+// QuerySOA ask a random server from servers and returns a SOA struct pointer.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func (s *Servers) QuerySOA(name string) (*SOA, error) {
+
+	return s.Get(-1).QuerySOA(name)
+}
+
+// QuerySOA ask a random server from DefaultServers and returns a SOA struct pointer.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
 func QuerySOA(name string) (*SOA, error) {
 
-	a, err := Query(name, TypeSOA)
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range a {
-
-		switch v := a[i].(type) {
-		case *dns.SOA:
-			return &SOA{Mname: v.Ns, Rname: v.Mbox, Serial: int(v.Serial), Refresh: int(v.Refresh), Retry: int(v.Retry), Expire: int(v.Expire), MinTTL: int(v.Minttl)}, nil
-		case *dns.CNAME:
-			// Ignore CNAME
-			continue
-		case *dns.DNAME:
-			// Ignore DNAME
-			continue
-		default:
-			return nil, fmt.Errorf("unknown type: %T", v)
-		}
-	}
-
-	return nil, nil
+	return DefaultServers.QuerySOA(name)
 }
 
-// QuerySOAServer returns the answer as a SOA struct.
-// The returned *SOA **can be nil**..
-// Returns nil in case of error.
-func QuerySOAServer(name string, s string) (*SOA, error) {
-
-	a, err := QueryServer(name, TypeSOA, s)
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range a {
-
-		switch v := a[i].(type) {
-		case *dns.SOA:
-			return &SOA{Mname: v.Ns, Rname: v.Mbox, Serial: int(v.Serial), Refresh: int(v.Refresh), Retry: int(v.Retry), Expire: int(v.Expire), MinTTL: int(v.Minttl)}, nil
-		case *dns.CNAME:
-			// Ignore CNAME
-			continue
-		case *dns.DNAME:
-			// Ignore DNAME
-			continue
-		default:
-			return nil, fmt.Errorf("unknown type: %T", v)
-		}
-	}
-
-	return nil, nil
-}
-
-// QuerySOARetry query for SOA record and retry for MaxRetries times if an error occured.
+// TryQuerySOA asks the servers for type SOA. If any error occured, retries with next server (except if error is NXDOMAIN).
 //
-// NXDOMAIN is not count as an error!
-func QuerySOARetry(name string) (*SOA, error) {
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+//
+// The first used server is random. The other record types are ignored.
+func (s *Servers) TryQuerySOA(name string) (*SOA, error) {
 
-	var (
-		r   *SOA  = nil
-		err error = ErrInvalidMaxRetries
-	)
+	rr, err := s.TryQuery(name, TypeSOA)
+	if err != nil {
+		return nil, err
+	}
 
-	for i := -1; i < MaxRetries-1; i++ {
+	for i := range rr {
 
-		r, err = QuerySOAServer(name, GetServer(i))
-		if err == nil || errors.Is(err, ErrName) {
-			return r, err
+		switch v := rr[i].(type) {
+		case *mdns.SOA:
+			return &SOA{Mname: v.Ns, Rname: v.Mbox, Serial: int(v.Serial), Refresh: int(v.Refresh), Retry: int(v.Retry), Expire: int(v.Expire), MinTTL: int(v.Minttl)}, nil
+		case *mdns.CNAME:
+			// Ignore CNAME
+			continue
+		case *mdns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
-// QuerySOARetry query for SOA record and retry for MaxRetries times if an error occured.
-func QuerySOARetryStr(name string) (string, error) {
+// TryQuerySOA asks the DefaultServers for type SOA. If any error occured, retries with next server (except if error is NXDOMAIN).
+//
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+//
+// The first used server is random. The other record types are ignored.
+func TryQuerySOA(name string) (*SOA, error) {
 
-	r, err := QuerySOARetry(name)
-	if err != nil {
-		return "", err
-	}
+	return DefaultServers.TryQuerySOA(name)
+}
 
-	if r == nil {
-		return "", nil
-	}
+// IsSetSOA checks whether an SOA type record set for name.
+// NXDOMAIN is not an error here, because it means "not found".
+func (s *Servers) IsSetSOA(name string) (bool, error) {
+	return s.IsSet(name, TypeSOA)
+}
 
-	return r.String(), nil
+// IsSetSOA checks whether an SOA type record set for name using the DefaultServers.
+// NXDOMAIN is not an error here, because it means "not found".
+func IsSetSOA(name string) (bool, error) {
+	return DefaultServers.IsSetSOA(name)
 }
 
 // TODO: Decide if the domain is registered based on the SOA record/root server

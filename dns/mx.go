@@ -1,10 +1,9 @@
 package dns
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/miekg/dns"
+	mdns "github.com/miekg/dns"
 )
 
 var TypeMX uint16 = 15
@@ -18,106 +17,107 @@ func (m MX) String() string {
 	return fmt.Sprintf("%d %s", m.Preference, m.Exchange)
 }
 
-// QueryMX returns a slice of MX struct.
-// Returns nil in case of error.
+// QueryMX ask the server and returns a slice of MX.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func (s *Server) QueryMX(name string) ([]MX, error) {
+
+	rr, err := s.Query(name, TypeMX)
+	if err != nil {
+		return nil, err
+	}
+
+	r := make([]MX, 0, len(rr))
+
+	for i := range rr {
+
+		switch v := rr[i].(type) {
+		case *mdns.MX:
+			r = append(r, MX{Preference: int(v.Preference), Exchange: v.Mx})
+		case *mdns.CNAME:
+			// Ignore CNAME
+			continue
+		case *mdns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
+	}
+
+	return r, nil
+}
+
+// QueryMX ask a random server from servers and returns a slice of MX.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func (s *Servers) QueryMX(name string) ([]MX, error) {
+
+	return s.Get(-1).QueryMX(name)
+}
+
+// QueryMX ask a random server from DefaultServers and returns a slice of MX.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
 func QueryMX(name string) ([]MX, error) {
 
-	a, err := Query(name, TypeMX)
-	if err != nil {
-		return nil, err
-	}
-
-	r := make([]MX, 0)
-
-	for i := range a {
-
-		switch v := a[i].(type) {
-		case *dns.MX:
-			r = append(r, MX{Preference: int(v.Preference), Exchange: v.Mx})
-		case *dns.CNAME:
-			// Ignore CNAME
-			continue
-		case *dns.DNAME:
-			// Ignore DNAME
-			continue
-		default:
-			return nil, fmt.Errorf("unknown type: %T", v)
-		}
-	}
-
-	return r, nil
+	return DefaultServers.QueryMX(name)
 }
 
-// QueryMXServer returns a slice of MX struct. Use server s to query.
-// Returns nil in case of error.
-func QueryMXServer(name string, s string) ([]MX, error) {
-
-	a, err := QueryServer(name, TypeMX, s)
-	if err != nil {
-		return nil, err
-	}
-
-	r := make([]MX, 0)
-
-	for i := range a {
-
-		switch v := a[i].(type) {
-		case *dns.MX:
-			r = append(r, MX{Preference: int(v.Preference), Exchange: v.Mx})
-		case *dns.CNAME:
-			// Ignore CNAME
-			continue
-		case *dns.DNAME:
-			// Ignore DNAME
-			continue
-		default:
-			return nil, fmt.Errorf("unknown type: %T", v)
-		}
-	}
-
-	return r, nil
-}
-
-// QueryMXRetry query for MX record and retry for MaxRetries times if an error occured.
+// TryQueryMX asks the servers for type MX. If any error occured, retries with next server (except if error is NXDOMAIN).
 //
-// NXDOMAIN is not count as an error!
-func QueryMXRetry(name string) ([]MX, error) {
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+//
+// The first used server is random. The other record types are ignored.
+func (s *Servers) TryQueryMX(name string) ([]MX, error) {
 
-	var (
-		r   []MX  = nil
-		err error = ErrInvalidMaxRetries
-	)
-
-	for i := -1; i < MaxRetries-1; i++ {
-
-		r, err = QueryMXServer(name, GetServer(i))
-		if err == nil || errors.Is(err, ErrName) {
-			return r, err
-		}
-	}
-
-	return nil, err
-}
-
-// QueryMXRetryStr query for MX record and retry for MaxRetries times if an error occured and returns the result as a string slice.
-func QueryMXRetryStr(name string) ([]string, error) {
-
-	r, err := QueryMXRetry(name)
+	rr, err := s.TryQuery(name, TypeMX)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]string, 0, len(r))
+	r := make([]MX, 0, len(rr))
 
-	for i := range r {
-		result = append(result, r[i].String())
+	for i := range rr {
+
+		switch v := rr[i].(type) {
+		case *mdns.MX:
+			r = append(r, MX{Preference: int(v.Preference), Exchange: v.Mx})
+		case *mdns.CNAME:
+			// Ignore CNAME
+			continue
+		case *mdns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
 	}
 
-	return result, nil
+	return r, nil
+}
+
+// TryQueryMX asks the DefaultServers for type MX. If any error occured, retries with next server (except if error is NXDOMAIN).
+//
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+//
+// The first used server is random. The other record types are ignored.
+func TryQueryMX(name string) ([]MX, error) {
+
+	return DefaultServers.TryQueryMX(name)
 }
 
 // IsSetMX checks whether an MX type record set for name.
 // NXDOMAIN is not an error here, because it means "not found".
+func (s *Servers) IsSetMX(name string) (bool, error) {
+	return s.IsSet(name, TypeMX)
+}
+
+// IsSetMX checks whether an MX type record set for name using the DefaultServers.
+// NXDOMAIN is not an error here, because it means "not found".
 func IsSetMX(name string) (bool, error) {
-	return IsSet(name, TypeMX)
+	return DefaultServers.IsSetMX(name)
 }

@@ -1,97 +1,114 @@
 package dns
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/miekg/dns"
+	mdns "github.com/miekg/dns"
 )
 
 var TypeNS uint16 = 2
 
-// QueryNS returns the answer as a string slice.
-// Returns nil in case of error.
+// QueryNS ask the server and returns a slice of string.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func (s *Server) QueryNS(name string) ([]string, error) {
+
+	rr, err := s.Query(name, TypeNS)
+	if err != nil {
+		return nil, err
+	}
+
+	r := make([]string, 0, len(rr))
+
+	for i := range rr {
+
+		switch v := rr[i].(type) {
+		case *mdns.NS:
+			r = append(r, v.Ns)
+		case *mdns.CNAME:
+			// Ignore CNAME
+			continue
+		case *mdns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
+	}
+
+	return r, nil
+}
+
+// QueryNS ask a random server from servers and returns a slice of string.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func (s *Servers) QueryNS(name string) ([]string, error) {
+
+	return s.Get(-1).QueryNS(name)
+}
+
+// QueryNS ask a random server from DefaultServers and returns a slice of string.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
 func QueryNS(name string) ([]string, error) {
 
-	a, err := Query(name, TypeNS)
-	if err != nil {
-		return nil, err
-	}
-
-	r := make([]string, 0)
-
-	for i := range a {
-
-		switch v := a[i].(type) {
-		case *dns.NS:
-			r = append(r, v.Ns)
-		case *dns.CNAME:
-			// Ignore CNAME
-			continue
-		case *dns.DNAME:
-			// Ignore DNAME
-			continue
-		default:
-			return nil, fmt.Errorf("unknown type: %T", v)
-		}
-	}
-
-	return r, nil
+	return DefaultServers.QueryNS(name)
 }
 
-// QueryNSServer returns the answer as a string slice. Use server s to query.
-// Returns nil in case of error.
-func QueryNSServer(name string, s string) ([]string, error) {
-
-	a, err := QueryServer(name, TypeNS, s)
-	if err != nil {
-		return nil, err
-	}
-
-	r := make([]string, 0)
-
-	for i := range a {
-
-		switch v := a[i].(type) {
-		case *dns.NS:
-			r = append(r, v.Ns)
-		case *dns.CNAME:
-			// Ignore CNAME
-			continue
-		case *dns.DNAME:
-			// Ignore DNAME
-			continue
-		default:
-			return nil, fmt.Errorf("unknown type: %T", v)
-		}
-	}
-
-	return r, nil
-}
-
-// QueryNSRetry query for NS record and retry for MaxRetries times if an error occured.
+// TryQueryNS asks the servers for type NS. If any error occured, retries with next server (except if error is NXDOMAIN).
 //
-// NXDOMAIN is not count as an error!
-func QueryNSRetry(name string) ([]string, error) {
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+//
+// The first used server is random. The other record types are ignored.
+func (s *Servers) TryQueryNS(name string) ([]string, error) {
 
-	var (
-		r   []string = nil
-		err error    = ErrInvalidMaxRetries
-	)
+	rr, err := s.TryQuery(name, TypeNS)
+	if err != nil {
+		return nil, err
+	}
 
-	for i := -1; i < MaxRetries-1; i++ {
+	r := make([]string, 0, len(rr))
 
-		r, err = QueryNSServer(name, GetServer(i))
-		if err == nil || errors.Is(err, ErrName) {
-			return r, err
+	for i := range rr {
+
+		switch v := rr[i].(type) {
+		case *mdns.NS:
+			r = append(r, v.Ns)
+		case *mdns.CNAME:
+			// Ignore CNAME
+			continue
+		case *mdns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
 		}
 	}
 
-	return nil, err
+	return r, nil
+}
+
+// TryQueryNS asks the DefaultServers for type NS. If any error occured, retries with next server (except if error is NXDOMAIN).
+//
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+//
+// The first used server is random. The other record types are ignored.
+func TryQueryNS(name string) ([]string, error) {
+
+	return DefaultServers.TryQueryNS(name)
 }
 
 // IsSetNS checks whether an NS type record set for name.
 // NXDOMAIN is not an error here, because it means "not found".
+func (s *Servers) IsSetNS(name string) (bool, error) {
+	return s.IsSet(name, TypeNS)
+}
+
+// IsSetNS checks whether an NS type record set for name using the DefaultServers.
+// NXDOMAIN is not an error here, because it means "not found".
 func IsSetNS(name string) (bool, error) {
-	return IsSet(name, TypeNS)
+	return DefaultServers.IsSetNS(name)
 }

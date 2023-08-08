@@ -1,10 +1,9 @@
 package dns
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/miekg/dns"
+	mdns "github.com/miekg/dns"
 )
 
 type SRV struct {
@@ -20,106 +19,107 @@ func (s SRV) String() string {
 
 var TypeSRV uint16 = 33
 
-// QuerySRV returns the answer as a slice os SRV.
-// Returns nil in case of error.
+// QuerySRV ask the server and returns a slice of SRV.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func (s *Server) QuerySRV(name string) ([]SRV, error) {
+
+	rr, err := s.Query(name, TypeSRV)
+	if err != nil {
+		return nil, err
+	}
+
+	r := make([]SRV, 0, len(rr))
+
+	for i := range rr {
+
+		switch v := rr[i].(type) {
+		case *mdns.SRV:
+			r = append(r, SRV{Priority: int(v.Priority), Weight: int(v.Weight), Port: int(v.Port), Target: v.Target})
+		case *mdns.CNAME:
+			// Ignore CNAME
+			continue
+		case *mdns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
+	}
+
+	return r, nil
+}
+
+// QuerySRV ask a random server from servers and returns a slice of SRV.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
+func (s *Servers) QuerySRV(name string) ([]SRV, error) {
+
+	return s.Get(-1).QuerySRV(name)
+}
+
+// QuerySRV ask a random server from DefaultServers and returns a slice of SRV.
+// The answer slice will be nil in case of error.
+//
+// The other record types are ignored.
 func QuerySRV(name string) ([]SRV, error) {
 
-	a, err := Query(name, TypeSRV)
-	if err != nil {
-		return nil, err
-	}
-
-	r := make([]SRV, 0)
-
-	for i := range a {
-
-		switch v := a[i].(type) {
-		case *dns.SRV:
-			r = append(r, SRV{Priority: int(v.Priority), Weight: int(v.Weight), Port: int(v.Port), Target: v.Target})
-		case *dns.CNAME:
-			// Ignore CNAME
-			continue
-		case *dns.DNAME:
-			// Ignore DNAME
-			continue
-		default:
-			return nil, fmt.Errorf("unknown type: %T", v)
-		}
-	}
-
-	return r, err
+	return DefaultServers.QuerySRV(name)
 }
 
-// QuerySRVServer returns the answer as a slice os SRV. Use server s to query.
-// Returns nil in case of error.
-func QuerySRVServer(name string, s string) ([]SRV, error) {
-
-	a, err := QueryServer(name, TypeSRV, s)
-	if err != nil {
-		return nil, err
-	}
-
-	r := make([]SRV, 0)
-
-	for i := range a {
-
-		switch v := a[i].(type) {
-		case *dns.SRV:
-			r = append(r, SRV{Priority: int(v.Priority), Weight: int(v.Weight), Port: int(v.Port), Target: v.Target})
-		case *dns.CNAME:
-			// Ignore CNAME
-			continue
-		case *dns.DNAME:
-			// Ignore DNAME
-			continue
-		default:
-			return nil, fmt.Errorf("unknown type: %T", v)
-		}
-	}
-
-	return r, err
-}
-
-// QuerySRVRetry query for SRV record and retry for MaxRetries times if an error occured.
+// TryQuerySRV asks the servers for type SRV. If any error occured, retries with next server (except if error is NXDOMAIN).
 //
-// NXDOMAIN is not count as an error!
-func QuerySRVRetry(name string) ([]SRV, error) {
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+//
+// The first used server is random. The other record types are ignored.
+func (s *Servers) TryQuerySRV(name string) ([]SRV, error) {
 
-	var (
-		r   []SRV = nil
-		err error = ErrInvalidMaxRetries
-	)
-
-	for i := -1; i < MaxRetries-1; i++ {
-
-		r, err = QuerySRVServer(name, GetServer(i))
-		if err == nil || errors.Is(err, ErrName) {
-			return r, err
-		}
-	}
-
-	return nil, err
-}
-
-// QuerySRVRetryStr query for SRV record and retry for MaxRetries times if an error occured and returns the result as a string slice.
-func QuerySRVRetryStr(name string) ([]string, error) {
-
-	r, err := QuerySRVRetry(name)
+	rr, err := s.TryQuery(name, TypeSRV)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]string, 0, len(r))
+	r := make([]SRV, 0, len(rr))
 
-	for i := range r {
-		result = append(result, r[i].String())
+	for i := range rr {
+
+		switch v := rr[i].(type) {
+		case *mdns.SRV:
+			r = append(r, SRV{Priority: int(v.Priority), Weight: int(v.Weight), Port: int(v.Port), Target: v.Target})
+		case *mdns.CNAME:
+			// Ignore CNAME
+			continue
+		case *mdns.DNAME:
+			// Ignore DNAME
+			continue
+		default:
+			return nil, fmt.Errorf("unknown type: %T", v)
+		}
 	}
 
-	return result, nil
+	return r, nil
+}
+
+// TryQuerySRV asks the DefaultServers for type SRV. If any error occured, retries with next server (except if error is NXDOMAIN).
+//
+// In case of error, the answer will be nil and return ErrX or any unknown error.
+//
+// The first used server is random. The other record types are ignored.
+func TryQuerySRV(name string) ([]SRV, error) {
+
+	return DefaultServers.TryQuerySRV(name)
 }
 
 // IsSetSRV checks whether an SRV type record set for name.
 // NXDOMAIN is not an error here, because it means "not found".
+func (s *Servers) IsSetSRV(name string) (bool, error) {
+	return s.IsSet(name, TypeSRV)
+}
+
+// IsSetSRV checks whether an SRV type record set for name using the DefaultServers.
+// NXDOMAIN is not an error here, because it means "not found".
 func IsSetSRV(name string) (bool, error) {
-	return IsSet(name, TypeSRV)
+	return DefaultServers.IsSetSRV(name)
 }
