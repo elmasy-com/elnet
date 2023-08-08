@@ -7,6 +7,7 @@ import (
 
 var (
 	ErrInvalidMaxRetries = errors.New("invalid MaxRetries")
+	ErrTruncated         = errors.New("message is truncated")
 )
 
 var (
