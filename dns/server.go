@@ -83,6 +83,16 @@ func NewServer(protocol string, ip string, port string, timeout time.Duration) (
 //   - 127.0.0.1 -> UDP query to 127.0.0.1 on port 53
 func NewServerStr(s string, timeout time.Duration) (Server, error) {
 
+	// The given server string is only an IPv4 address.
+	if validator.IPv4(s) {
+		return Server{Protocol: "udp", IP: s, Port: "53", family: 4, client: &mdns.Client{Net: "udp", Timeout: timeout}}, nil
+	}
+
+	// The given server string is only an IPv6 address.
+	if validator.IPv6(s) {
+		return Server{Protocol: "udp", IP: s, Port: "53", family: 6, client: &mdns.Client{Net: "udp", Timeout: timeout}}, nil
+	}
+
 	r, err := url.Parse(s)
 	if err != nil {
 		return Server{}, err
