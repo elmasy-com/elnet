@@ -91,7 +91,7 @@ func (s *Servers) TryQueryNS(name string) ([]string, error) {
 	return r, nil
 }
 
-// TryQueryNS asks the DefaultServers for type NS. If any error occured, retries with next server (except if error is NXDOMAIN).
+// TryQueryNS asks the DefaultServers for type NS. If any error occurred, retries with next server (except if error is NXDOMAIN).
 //
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //

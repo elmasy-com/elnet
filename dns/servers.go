@@ -116,7 +116,7 @@ func (s *Servers) Query(name string, t uint16) ([]mdns.RR, error) {
 	return s.Get(-1).Query(name, t)
 }
 
-// TryQuery asks the servers for type t. If any error occured, retries with an other server (except if error is NXDOMAIN).
+// TryQuery asks the servers for type t. If any error occurred, retries with an other server (except if error is NXDOMAIN).
 // Returns the Answer section.
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //
