@@ -7,7 +7,7 @@ require (
 	github.com/elmasy-com/elmasy v0.1.0
 	github.com/elmasy-com/identify v1.1.0
 	github.com/elmasy-com/slices v0.0.0-20230712174526-6eb4e5e38b73
-	github.com/g0rbe/slitu v1.0.4
+	github.com/g0rbe/slitu v1.0.5
 	github.com/google/certificate-transparency-go v1.1.6
 	github.com/google/gopacket v1.1.19
 	github.com/miekg/dns v1.1.55

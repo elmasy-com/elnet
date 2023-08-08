@@ -12,6 +12,8 @@ github.com/elmasy-com/slices v0.0.0-20230712174526-6eb4e5e38b73 h1:9I1IZOvF7XurN
 github.com/elmasy-com/slices v0.0.0-20230712174526-6eb4e5e38b73/go.mod h1:0DO/qXOgrnrXU44i+9JQzusxxxx6WPPW7WQeV/RJLLM=
 github.com/g0rbe/slitu v1.0.4 h1:9wUp+dPRCyLzrnZEqKS85P6DVjOGV15dRsU6IsepEcE=
 github.com/g0rbe/slitu v1.0.4/go.mod h1:Aa/XZJV+hyeffFu1+ie3mHwOy9ygJ/blK+V50hHlxbo=
+github.com/g0rbe/slitu v1.0.5 h1:DCjUOHSN+aZiAaperOMppcRkW0k8bBYX+9SlPtg/rmE=
+github.com/g0rbe/slitu v1.0.5/go.mod h1:Aa/XZJV+hyeffFu1+ie3mHwOy9ygJ/blK+V50hHlxbo=
 github.com/gaukas/godicttls v0.0.3 h1:YNDIf0d9adcxOijiLrEzpfZGAkNwLRzPaG6OjU7EITk=
 github.com/gaukas/godicttls v0.0.3/go.mod h1:l6EenT4TLWgTdwslVb4sEMOCf7Bv0JAK67deKr9/NCI=
 github.com/go-logr/logr v1.2.0/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
