@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
+	"net/netip"
+
+	"github.com/elmasy-com/elnet/validator"
 )
 
 // ReservedIPv6 is a collection of reserved IPv6 addresses.
@@ -43,14 +46,11 @@ func IsReserved6(ip net.IP) bool {
 }
 
 // IsValid6 checks whether ip is valid IPv6 address.
-func IsValid6[T IPTypes](ip T) bool {
-
-	i := convertToIP(ip)
-	if i == nil {
-		return false
-	}
-
-	return i.To4() == nil
+// This function is a wrapper for github.com/elmasy-com/elnet/validator.IPv6
+//
+// Deprecated: Use github.com/elmasy-com/elnet/validator instead.
+func IsValid6[T net.IP | *net.IP | netip.Addr | *netip.Addr | string | *string](ip T) bool {
+	return validator.IPv6(ip)
 }
 
 // GetRandom6 is return a random IPv6 address.
@@ -87,7 +87,7 @@ func GetPublic6() net.IP {
 func GetList6(n net.IPNet) (net.IP, net.IP, <-chan net.IP, error) {
 
 	switch {
-	case !IsValid6(n):
+	case !validator.IPv6(n.IP):
 		return nil, nil, nil, fmt.Errorf("invalid IPv6 address: %s", n.IP)
 	case len(n.Mask) != net.IPv6len:
 		return nil, nil, nil, fmt.Errorf("invalid IPv6 mask: %s", n.Mask)

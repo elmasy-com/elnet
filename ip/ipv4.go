@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
+	"net/netip"
+
+	"github.com/elmasy-com/elnet/validator"
 )
 
 // ReservedIPv4 is a collection of reserved IPv4 addresses.
@@ -47,14 +50,11 @@ func IsReserved4(ip net.IP) bool {
 }
 
 // IsValid4 checks whether ip is valid IPv4 address.
-func IsValid4[T IPTypes](ip T) bool {
-
-	i := convertToIP(ip)
-	if i == nil {
-		return false
-	}
-
-	return i.To4() != nil
+// This function is a wrapper for github.com/elmasy-com/elnet/validator.IPv4
+//
+// Deprecated: Use github.com/elmasy-com/elnet/validator instead.
+func IsValid4[T net.IP | *net.IP | netip.Addr | *netip.Addr | string | *string](ip T) bool {
+	return validator.IPv4(ip)
 }
 
 // GetRandom4 is return a random IPv4 address.
@@ -87,7 +87,7 @@ func GetPublic4() net.IP {
 func GetList4(n net.IPNet) (net.IP, net.IP, <-chan net.IP, error) {
 
 	switch {
-	case !IsValid4(n):
+	case !validator.IPv4(n.IP):
 		return nil, nil, nil, fmt.Errorf("invalid IPv4 address: %s", n.IP)
 	case len(n.Mask) != net.IPv4len:
 		return nil, nil, nil, fmt.Errorf("invalid IPv4 mask: %s", n.Mask)

@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
+	"net/netip"
 	"time"
+
+	"github.com/elmasy-com/elnet/validator"
 )
 
 func init() {
@@ -86,8 +89,11 @@ func IsLAN(ip net.IP) bool {
 }
 
 // IsValidIP checks whether ip is valid IP address.
-func IsValid[T IPTypes](ip T) bool {
-	return IsValid4(ip) || IsValid6(ip)
+// This function is a wrapper for github.com/elmasy-com/elnet/validator.IP
+//
+// Deprecated: Use github.com/elmasy-com/elnet/validator instead.
+func IsValid[T net.IP | *net.IP | netip.Addr | *netip.Addr | string | *string](ip T) bool {
+	return validator.IP(ip)
 }
 
 // IsReservedIP checks whether ip is in the reserved address range.
@@ -139,9 +145,9 @@ func Increase(ip net.IP) {
 func GetList(n net.IPNet) (net.IP, net.IP, <-chan net.IP, error) {
 
 	switch {
-	case IsValid4(n):
+	case validator.IPv4(n.IP):
 		return GetList4(n)
-	case IsValid6(n):
+	case validator.IPv6(n.IP):
 		return GetList6(n)
 	default:
 		return nil, nil, nil, fmt.Errorf("invalid IP address: %s", n.IP)
