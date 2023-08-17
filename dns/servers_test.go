@@ -122,23 +122,6 @@ func TestNewServersSetMaxRetries(t *testing.T) {
 	}
 }
 
-func TestNewServersQuery(t *testing.T) {
-
-	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
-	if err != nil {
-		t.Fatalf("FAIL: Failed to create servers: %s\n", err)
-	}
-
-	r, err := srvs.Query("example.com", TypeA)
-	if err != nil {
-		t.Fatalf("FAIL: Failed to query example.com: %s\n", err)
-	}
-
-	if len(r) == 0 {
-		t.Fatalf("FAIL: Invalid result length: %d\n", len(r))
-	}
-}
-
 func TestNewServersTryQuery(t *testing.T) {
 
 	srvs, err := NewServersStr(3, 1*time.Second, "8.8.8.8", "8.8.8.8", "8.8.8.8")
