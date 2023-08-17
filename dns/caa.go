@@ -2,7 +2,6 @@ package dns
 
 import (
 	"fmt"
-	"net"
 
 	mdns "github.com/miekg/dns"
 )
@@ -74,20 +73,20 @@ func QueryCAA(name string) ([]CAA, error) {
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //
 // The first used server is random. The other record types are ignored.
-func (s *Servers) TryQueryCAA(name string) ([]net.IP, error) {
+func (s *Servers) TryQueryCAA(name string) ([]CAA, error) {
 
 	rr, err := s.TryQuery(name, TypeCAA)
 	if err != nil {
 		return nil, err
 	}
 
-	r := make([]net.IP, 0, len(rr))
+	r := make([]CAA, 0, len(rr))
 
 	for i := range rr {
 
 		switch v := rr[i].(type) {
-		case *mdns.A:
-			r = append(r, v.A)
+		case *mdns.CAA:
+			r = append(r, CAA{Flag: v.Flag, Tag: v.Tag, Value: v.Value})
 		case *mdns.CNAME:
 			// Ignore CNAME
 			continue
@@ -107,9 +106,9 @@ func (s *Servers) TryQueryCAA(name string) ([]net.IP, error) {
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 //
 // The first used server is random. The other record types are ignored.
-func TryQueryCAA(name string) ([]net.IP, error) {
+func TryQueryCAA(name string) ([]CAA, error) {
 
-	return DefaultServers.TryQueryA(name)
+	return DefaultServers.TryQueryCAA(name)
 }
 
 // IsSetCAA checks whether a CAA type record set for name.
