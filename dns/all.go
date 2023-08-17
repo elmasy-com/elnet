@@ -11,7 +11,7 @@ type Record struct {
 	Value string
 }
 
-// QueryAll query every known type and retuns the records.
+// QueryAll query every known type and returns the records.
 // This function checks whether name with the type is a wildcard.
 func (s *Servers) QueryAll(name string) ([]Record, []error) {
 
