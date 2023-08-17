@@ -12,7 +12,7 @@ type Record struct {
 }
 
 // QueryAll query every known type and returns the records.
-// This function checks whether name with the type is a wildcard.
+// This function checks whether name with the type is a wildcard, and if name is a wildcard, ommit from the retuned []Record.
 func (s *Servers) QueryAll(name string) ([]Record, []error) {
 
 	var (
@@ -255,4 +255,11 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 	}
 
 	return rs, errs
+}
+
+// QueryAll query every known type and returns the records.
+// This function checks whether name with the type is a wildcard.
+func QueryAll(name string) ([]Record, []error) {
+
+	return DefaultServers.QueryAll(name)
 }

@@ -9,7 +9,7 @@ func TestQueryAll(t *testing.T) {
 
 	TestDomain := "elmasy.com"
 
-	rr, errs := DefaultServers.QueryAll(TestDomain)
+	rr, errs := QueryAll(TestDomain)
 	for i := range errs {
 		t.Fatalf("FAIL: %s\n", errs[i])
 	}
