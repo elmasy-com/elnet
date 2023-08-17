@@ -113,7 +113,7 @@ func (s *Servers) SetMaxRetries(n int) {
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 func (s *Servers) Query(name string, t uint16) ([]mdns.RR, error) {
 
-	return s.Get(-1).Query(name, t)
+	return s.Get(-1).query(name, t)
 }
 
 // TryQuery asks the servers for type t. If any error occurred, retries with an other server (except if error is NXDOMAIN).
@@ -131,7 +131,7 @@ func (s *Servers) TryQuery(name string, t uint16) ([]mdns.RR, error) {
 
 	for i := -1; i < maxRetries; i++ {
 
-		rr, err = s.Get(i).Query(name, t)
+		rr, err = s.Get(i).query(name, t)
 		if err == nil || errors.Is(err, ErrName) {
 			break
 		}

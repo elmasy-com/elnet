@@ -23,7 +23,7 @@ func (m MX) String() string {
 // The other record types are ignored.
 func (s *Server) QueryMX(name string) ([]MX, error) {
 
-	rr, err := s.Query(name, TypeMX)
+	rr, err := s.query(name, TypeMX)
 	if err != nil {
 		return nil, err
 	}

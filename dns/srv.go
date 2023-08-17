@@ -25,7 +25,7 @@ var TypeSRV uint16 = 33
 // The other record types are ignored.
 func (s *Server) QuerySRV(name string) ([]SRV, error) {
 
-	rr, err := s.Query(name, TypeSRV)
+	rr, err := s.query(name, TypeSRV)
 	if err != nil {
 		return nil, err
 	}

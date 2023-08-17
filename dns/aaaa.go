@@ -15,7 +15,7 @@ var TypeAAAA uint16 = 28
 // The other record types are ignored.
 func (s *Server) QueryAAAA(name string) ([]net.IP, error) {
 
-	rr, err := s.Query(name, TypeAAAA)
+	rr, err := s.query(name, TypeAAAA)
 	if err != nil {
 		return nil, err
 	}

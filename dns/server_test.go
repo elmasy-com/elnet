@@ -233,7 +233,7 @@ func TestServerQueryAUDP(t *testing.T) {
 		t.Fatalf("FAIL: Failed to create server: %s\n", err)
 	}
 
-	rr, err := s.Query("example.com", TypeA)
+	rr, err := s.query("example.com", TypeA)
 	if err != nil {
 		t.Fatalf("FAIL: Failed to get A record for example.com: %s\n", err)
 	}
@@ -264,7 +264,7 @@ func TestServerQueryATCP(t *testing.T) {
 		t.Fatalf("FAIL: Failed to create server: %s\n", err)
 	}
 
-	rr, err := s.Query("example.com", TypeA)
+	rr, err := s.query("example.com", TypeA)
 	if err != nil {
 		t.Fatalf("FAIL: Failed to get A record for example.com: %s\n", err)
 	}
@@ -295,7 +295,7 @@ func TestServerQueryATCPTLS(t *testing.T) {
 		t.Fatalf("FAIL: Failed to create server: %s\n", err)
 	}
 
-	rr, err := s.Query("example.com", TypeA)
+	rr, err := s.query("example.com", TypeA)
 	if err != nil {
 		t.Fatalf("FAIL: Failed to get A record for example.com: %s\n", err)
 	}

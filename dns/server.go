@@ -181,7 +181,7 @@ func (s *Server) ToTCP() *Server {
 // Returns the Answer section.
 // In case of error, the answer will be nil and return ErrX or any unknown error.
 // If the returned messsage is truncated, create a TCP server from s and retry the query.
-func (s *Server) Query(name string, t uint16) ([]mdns.RR, error) {
+func (s *Server) query(name string, t uint16) ([]mdns.RR, error) {
 
 	msg := new(mdns.Msg)
 	msg.SetQuestion(mdns.Fqdn(name), t)
@@ -198,7 +198,7 @@ func (s *Server) Query(name string, t uint16) ([]mdns.RR, error) {
 			return nil, ErrTruncated
 		}
 
-		return tcpS.Query(name, t)
+		return tcpS.query(name, t)
 	}
 
 	if in.Rcode == 0 {

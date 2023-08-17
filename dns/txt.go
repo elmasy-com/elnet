@@ -14,7 +14,7 @@ var TypeTXT uint16 = 16
 // The other record types are ignored.
 func (s *Server) QueryTXT(name string) ([]string, error) {
 
-	rr, err := s.Query(name, TypeTXT)
+	rr, err := s.query(name, TypeTXT)
 	if err != nil {
 		return nil, err
 	}

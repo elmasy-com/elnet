@@ -25,7 +25,7 @@ func (c CAA) String() string {
 // The other record types are ignored.
 func (s *Server) QueryCAA(name string) ([]CAA, error) {
 
-	rr, err := s.Query(name, TypeCAA)
+	rr, err := s.query(name, TypeCAA)
 	if err != nil {
 		return nil, err
 	}

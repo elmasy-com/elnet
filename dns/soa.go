@@ -29,7 +29,7 @@ func (s SOA) String() string {
 // The other record types are ignored.
 func (s *Server) QuerySOA(name string) (*SOA, error) {
 
-	rr, err := s.Query(name, TypeSOA)
+	rr, err := s.query(name, TypeSOA)
 	if err != nil {
 		return nil, err
 	}

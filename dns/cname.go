@@ -14,7 +14,7 @@ var TypeCNAME uint16 = 5
 // The other record types are ignored.
 func (s *Server) QueryCNAME(name string) ([]string, error) {
 
-	rr, err := s.Query(name, TypeCNAME)
+	rr, err := s.query(name, TypeCNAME)
 	if err != nil {
 		return nil, err
 	}

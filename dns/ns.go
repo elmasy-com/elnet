@@ -14,7 +14,7 @@ var TypeNS uint16 = 2
 // The other record types are ignored.
 func (s *Server) QueryNS(name string) ([]string, error) {
 
-	rr, err := s.Query(name, TypeNS)
+	rr, err := s.query(name, TypeNS)
 	if err != nil {
 		return nil, err
 	}

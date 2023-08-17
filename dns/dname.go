@@ -14,7 +14,7 @@ var TypeDNAME uint16 = 39
 // The other record types are ignored.
 func (s *Server) QueryDNAME(name string) (string, error) {
 
-	rr, err := s.Query(name, TypeDNAME)
+	rr, err := s.query(name, TypeDNAME)
 	if err != nil {
 		return "", err
 	}
