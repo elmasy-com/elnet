@@ -9,6 +9,10 @@ func TestQueryCNAME(t *testing.T) {
 		t.Fatalf("FAIL: %s\n", err)
 	}
 
+	if len(r) == 0 {
+		t.Fatalf("FAIL: No CNAME record for autodiscover.elmasy.com\n")
+	}
+
 	for i := range r {
 		t.Logf("autodiscover.elmasy.com CNAME -> %s\n", r[i])
 	}
