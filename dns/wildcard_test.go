@@ -19,7 +19,7 @@ func TestIsWildcard(t *testing.T) {
 
 	for i := range cases {
 
-		r, err := DefaultServers.IsWildcard(cases[i].D, TypeA)
+		r, err := IsWildcard(cases[i].D, TypeA)
 		if err != nil {
 			t.Fatalf("FAIL: failed to check if %s is a wildcard: %s\n", cases[i].D, err)
 		}
