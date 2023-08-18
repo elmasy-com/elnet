@@ -3,6 +3,7 @@ package dns
 import (
 	"fmt"
 
+	"github.com/elmasy-com/slices"
 	mdns "github.com/miekg/dns"
 )
 
@@ -189,9 +190,9 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 	}
 
 	// Checks whether name is a wildcard
-	wc, err = s.IsWildcard(name, TypeTXT)
+	wc, err = s.IsWildcard(name, TypeSRV)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("wildcard TXT: %w", err))
+		errs = append(errs, fmt.Errorf("wildcard SRV: %w", err))
 	}
 
 	// If not a wildcard domain, append the result
@@ -228,26 +229,26 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 
 		switch v := rr[i].(type) {
 		case *mdns.A:
-			rs = append(rs, Record{Type: TypeA, Value: v.A.String()})
+			rs = slices.AppendUnique(rs, Record{Type: TypeA, Value: v.A.String()})
 		case *mdns.AAAA:
-			rs = append(rs, Record{Type: TypeAAAA, Value: v.AAAA.String()})
+			rs = slices.AppendUnique(rs, Record{Type: TypeAAAA, Value: v.AAAA.String()})
 		case *mdns.CAA:
-			rs = append(rs, Record{Type: TypeCAA, Value: fmt.Sprintf("%d %s %s", v.Flag, v.Tag, v.Value)})
+			rs = slices.AppendUnique(rs, Record{Type: TypeCAA, Value: fmt.Sprintf("%d %s %s", v.Flag, v.Tag, v.Value)})
 		case *mdns.CNAME:
-			rs = append(rs, Record{Type: TypeCNAME, Value: v.Target})
+			rs = slices.AppendUnique(rs, Record{Type: TypeCNAME, Value: v.Target})
 		case *mdns.DNAME:
-			rs = append(rs, Record{Type: TypeDNAME, Value: v.Target})
+			rs = slices.AppendUnique(rs, Record{Type: TypeDNAME, Value: v.Target})
 		case *mdns.MX:
-			rs = append(rs, Record{Type: TypeMX, Value: fmt.Sprintf("%d %s", v.Preference, v.Mx)})
+			rs = slices.AppendUnique(rs, Record{Type: TypeMX, Value: fmt.Sprintf("%d %s", v.Preference, v.Mx)})
 		case *mdns.NS:
-			rs = append(rs, Record{Type: TypeNS, Value: v.Ns})
+			rs = slices.AppendUnique(rs, Record{Type: TypeNS, Value: v.Ns})
 		case *mdns.SOA:
-			rs = append(rs, Record{Type: TypeSOA, Value: fmt.Sprintf("%s %s %d %d %d %d %d", v.Ns, v.Mbox, v.Serial, v.Refresh, v.Retry, v.Expire, v.Minttl)})
+			rs = slices.AppendUnique(rs, Record{Type: TypeSOA, Value: fmt.Sprintf("%s %s %d %d %d %d %d", v.Ns, v.Mbox, v.Serial, v.Refresh, v.Retry, v.Expire, v.Minttl)})
 		case *mdns.SRV:
-			rs = append(rs, Record{Type: TypeSRV, Value: fmt.Sprintf("%d %d %d %s", v.Priority, v.Weight, v.Port, v.Target)})
+			rs = slices.AppendUnique(rs, Record{Type: TypeSRV, Value: fmt.Sprintf("%d %d %d %s", v.Priority, v.Weight, v.Port, v.Target)})
 		case *mdns.TXT:
 			for ii := range v.Txt {
-				rs = append(rs, Record{Type: TypeTXT, Value: v.Txt[ii]})
+				rs = slices.AppendUnique(rs, Record{Type: TypeTXT, Value: v.Txt[ii]})
 			}
 		default:
 			errs = append(errs, fmt.Errorf("unknown type: %T", v))
