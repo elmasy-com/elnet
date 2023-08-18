@@ -14,11 +14,12 @@ type Record struct {
 
 // QueryAll query every known type and returns the records.
 // This function checks whether name with the type is a wildcard, and if name is a wildcard, ommit from the retuned []Record.
-func (s *Servers) QueryAll(name string) ([]Record, []error) {
+//
+// It is possible to return records when error returned.
+func (s *Servers) QueryAll(name string) ([]Record, error) {
 
 	var (
-		errs = make([]error, 0)
-		rr   = make([]mdns.RR, 0)
+		rr = make([]mdns.RR, 0)
 	)
 
 	/*
@@ -27,18 +28,27 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 
 	r, err := s.TryQuery(name, TypeA)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("query A: %w", err))
+
+		// NXDOMAIN means, that there is no record for name
+		// If server responds NOERROR with 0 answer, means that there is a record for name, but not with the given type
+		return nil, err
+
 	}
 
-	// Checks whether name is a wildcard
-	wc, err := s.IsWildcard(name, TypeA)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("wildcard A: %w", err))
-	}
+	if len(r) > 0 {
 
-	// If not a wildcard domain, append the result
-	if !wc {
-		rr = append(rr, r...)
+		// Checks whether name is a wildcard
+		wc, err := s.IsWildcard(name, TypeA)
+		if err != nil {
+
+			// Ignore error and assume that name is a wildcard
+			wc = true
+		}
+
+		// If not a wildcard domain, append the result
+		if !wc {
+			rr = append(rr, r...)
+		}
 	}
 
 	/*
@@ -47,18 +57,22 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 
 	r, err = s.TryQuery(name, TypeAAAA)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("query AAAA: %w", err))
+		return nil, err
 	}
 
-	// Checks whether name is a wildcard
-	wc, err = s.IsWildcard(name, TypeAAAA)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("wildcard AAAA: %w", err))
-	}
+	if len(r) > 0 {
 
-	// If not a wildcard domain, append the result
-	if !wc {
-		rr = append(rr, r...)
+		// Checks whether name is a wildcard
+		wc, err := s.IsWildcard(name, TypeAAAA)
+		if err != nil {
+			// Ignore error and assume that name is a wildcard
+			wc = true
+		}
+
+		// If not a wildcard domain, append the result
+		if !wc {
+			rr = append(rr, r...)
+		}
 	}
 
 	/*
@@ -67,18 +81,22 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 
 	r, err = s.TryQuery(name, TypeCAA)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("query CAA: %w", err))
+		return nil, err
 	}
 
-	// Checks whether name is a wildcard
-	wc, err = s.IsWildcard(name, TypeCAA)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("wildcard CAA: %w", err))
-	}
+	if len(r) > 0 {
 
-	// If not a wildcard domain, append the result
-	if !wc {
-		rr = append(rr, r...)
+		// Checks whether name is a wildcard
+		wc, err := s.IsWildcard(name, TypeCAA)
+		if err != nil {
+			// Ignore error and assume that name is a wildcard
+			wc = true
+		}
+
+		// If not a wildcard domain, append the result
+		if !wc {
+			rr = append(rr, r...)
+		}
 	}
 
 	/*
@@ -87,18 +105,22 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 
 	r, err = s.TryQuery(name, TypeCNAME)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("query CNAME: %w", err))
+		return nil, err
 	}
 
-	// Checks whether name is a wildcard
-	wc, err = s.IsWildcard(name, TypeCNAME)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("wildcard CNAME: %w", err))
-	}
+	if len(r) > 0 {
 
-	// If not a wildcard domain, append the result
-	if !wc {
-		rr = append(rr, r...)
+		// Checks whether name is a wildcard
+		wc, err := s.IsWildcard(name, TypeCNAME)
+		if err != nil {
+			// Ignore error and assume that name is a wildcard
+			wc = true
+		}
+
+		// If not a wildcard domain, append the result
+		if !wc {
+			rr = append(rr, r...)
+		}
 	}
 
 	/*
@@ -107,18 +129,22 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 
 	r, err = s.TryQuery(name, TypeDNAME)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("query DNAME: %w", err))
+		return nil, err
 	}
 
-	// Checks whether name is a wildcard
-	wc, err = s.IsWildcard(name, TypeDNAME)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("wildcard DNAME: %w", err))
-	}
+	if len(r) > 0 {
 
-	// If not a wildcard domain, append the result
-	if !wc {
-		rr = append(rr, r...)
+		// Checks whether name is a wildcard
+		wc, err := s.IsWildcard(name, TypeDNAME)
+		if err != nil {
+			// Ignore error and assume that name is a wildcard
+			wc = true
+		}
+
+		// If not a wildcard domain, append the result
+		if !wc {
+			rr = append(rr, r...)
+		}
 	}
 
 	/*
@@ -126,18 +152,22 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 	 */
 	r, err = s.TryQuery(name, TypeMX)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("query MX: %w", err))
+		return nil, err
 	}
 
-	// Checks whether name is a wildcard
-	wc, err = s.IsWildcard(name, TypeMX)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("wildcard MX: %w", err))
-	}
+	if len(r) > 0 {
 
-	// If not a wildcard domain, append the result
-	if !wc {
-		rr = append(rr, r...)
+		// Checks whether name is a wildcard
+		wc, err := s.IsWildcard(name, TypeMX)
+		if err != nil {
+			// Ignore error and assume that name is a wildcard
+			wc = true
+		}
+
+		// If not a wildcard domain, append the result
+		if !wc {
+			rr = append(rr, r...)
+		}
 	}
 
 	/*
@@ -146,18 +176,22 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 
 	r, err = s.TryQuery(name, TypeNS)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("query NS: %w", err))
+		return nil, err
 	}
 
-	// Checks whether name is a wildcard
-	wc, err = s.IsWildcard(name, TypeNS)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("wildcard NS: %w", err))
-	}
+	if len(r) > 0 {
 
-	// If not a wildcard domain, append the result
-	if !wc {
-		rr = append(rr, r...)
+		// Checks whether name is a wildcard
+		wc, err := s.IsWildcard(name, TypeNS)
+		if err != nil {
+			// Ignore error and assume that name is a wildcard
+			wc = true
+		}
+
+		// If not a wildcard domain, append the result
+		if !wc {
+			rr = append(rr, r...)
+		}
 	}
 
 	/*
@@ -166,18 +200,22 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 
 	r, err = s.TryQuery(name, TypeSOA)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("query SOA: %w", err))
+		return nil, err
 	}
 
-	// Checks whether name is a wildcard
-	wc, err = s.IsWildcard(name, TypeSOA)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("wildcard SOA: %w", err))
-	}
+	if len(r) > 0 {
 
-	// If not a wildcard domain, append the result
-	if !wc {
-		rr = append(rr, r...)
+		// Checks whether name is a wildcard
+		wc, err := s.IsWildcard(name, TypeSOA)
+		if err != nil {
+			// Ignore error and assume that name is a wildcard
+			wc = true
+		}
+
+		// If not a wildcard domain, append the result
+		if !wc {
+			rr = append(rr, r...)
+		}
 	}
 
 	/*
@@ -186,18 +224,22 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 
 	r, err = s.TryQuery(name, TypeSRV)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("query SRV: %w", err))
+		return nil, err
 	}
 
-	// Checks whether name is a wildcard
-	wc, err = s.IsWildcard(name, TypeSRV)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("wildcard SRV: %w", err))
-	}
+	if len(r) > 0 {
 
-	// If not a wildcard domain, append the result
-	if !wc {
-		rr = append(rr, r...)
+		// Checks whether name is a wildcard
+		wc, err := s.IsWildcard(name, TypeSRV)
+		if err != nil {
+			// Ignore error and assume that name is a wildcard
+			wc = true
+		}
+
+		// If not a wildcard domain, append the result
+		if !wc {
+			rr = append(rr, r...)
+		}
 	}
 
 	/*
@@ -206,18 +248,22 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 
 	r, err = s.TryQuery(name, TypeTXT)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("query TXT: %w", err))
+		return nil, err
 	}
 
-	// Checks whether name is a wildcard
-	wc, err = s.IsWildcard(name, TypeTXT)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("wildcard TXT: %w", err))
-	}
+	if len(r) > 0 {
 
-	// If not a wildcard domain, append the result
-	if !wc {
-		rr = append(rr, r...)
+		// Checks whether name is a wildcard
+		wc, err := s.IsWildcard(name, TypeTXT)
+		if err != nil {
+			// Ignore error and assume that name is a wildcard
+			wc = true
+		}
+
+		// If not a wildcard domain, append the result
+		if !wc {
+			rr = append(rr, r...)
+		}
 	}
 
 	/*
@@ -251,16 +297,16 @@ func (s *Servers) QueryAll(name string) ([]Record, []error) {
 				rs = slices.AppendUnique(rs, Record{Type: TypeTXT, Value: v.Txt[ii]})
 			}
 		default:
-			errs = append(errs, fmt.Errorf("unknown type: %T", v))
+			return rs, fmt.Errorf("unknown type: %T", v)
 		}
 	}
 
-	return rs, errs
+	return rs, nil
 }
 
 // QueryAll query every known type and returns the records.
 // This function checks whether name with the type is a wildcard.
-func QueryAll(name string) ([]Record, []error) {
+func QueryAll(name string) ([]Record, error) {
 
 	return DefaultServers.QueryAll(name)
 }
