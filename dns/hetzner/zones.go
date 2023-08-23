@@ -86,3 +86,49 @@ func (c *Client) GetAllZones() ([]Zone, error) {
 
 	return zones.Zones, nil
 }
+
+// GetZoneByName returns the zone associated with the user with name name.
+func (c *Client) GetZoneByName(name string) (Zone, error) {
+
+	req, err := http.NewRequest("GET", BaseURL+"/zones?name="+name, nil)
+	if err != nil {
+		return Zone{}, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Add("Auth-API-Token", c.key)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return Zone{}, fmt.Errorf("failed request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Read Response Body
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return Zone{}, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// Error
+	if resp.StatusCode != http.StatusOK {
+
+		return Zone{}, parseError(resp.StatusCode, respBody)
+	}
+
+	zones := new(Zones)
+
+	err = json.Unmarshal(respBody, zones)
+	if err != nil {
+		return Zone{}, fmt.Errorf("failed to unmarshal: %w", err)
+	}
+
+	if len(zones.Zones) < 1 {
+		return Zone{}, ErrZoneNotFound
+	}
+
+	if len(zones.Zones) > 1 {
+		return Zone{}, fmt.Errorf("multiple zone returned: %d", len(zones.Zones))
+	}
+
+	return zones.Zones[0], nil
+}
